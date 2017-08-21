@@ -1,0 +1,57 @@
+<div class="container">
+    <div class="row">
+        <div class="row col-sm-5 container-question">
+            <form>
+                <p class="question-title">Question will display here bla bla ?</p>
+                <!-- begin option -->
+                <div class="container space">
+                    <input type="checkbox" id="option1">
+                    <label for="option1">option1</label>
+                </div>
+                <div class="container space">
+                    <input type="checkbox" id="option2" checked>
+                    <label for="option2">option2</label>
+                </div>
+                <div class="container space">
+                    <input type="checkbox" id="option3" name="iCheck">
+                    <label for="option3">option3</label>
+                </div>
+                <div class="container space">
+                    <input type="checkbox" id="option4" name="iCheck" checked>
+                    <label for="option4">option4</label>
+                </div>
+                <!-- end option -->
+                <button >Vote</button>
+            </form>
+            <div class="survey-info">
+            	<p>Total Votes: 113</p>
+            	<p>Survey Close date: 10/3/1856</p>
+            </div>
+        </div>
+        <div class="col-sm-7 row container-graph">
+            <div class="col-md-offset-4 col-sm-6">
+                <canvas style="background-color: red" id="myChart" width="400" height="400">
+                    aqui va grafico
+                </canvas>
+                <div>
+                    <select>
+                        <option value="" selected>Choose Chart</option>
+                        <option>Bar Chart</option>
+                        <option>Line Chart</option>
+                        <option>Stack Chart</option>
+                        <option>Doughnut Chart</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- <script>
+var ctx = document.getElementById('myChart').getContext('2d')
+var myBarChart = new Chart (ctx, {
+  type: 'bar',
+  data: data,
+  options: options
+})
+</script> -->

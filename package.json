@@ -5,9 +5,11 @@
   "main": "app.js",
   "scripts": {
     "prestart": "npm install",
-    "start": "node app",
-    "dev": "nodemon app",
-    "dev:debug": "DEBUG=*,-nodemon*,-send* npm run dev"
+    "start": "node server/app",
+    "dev": "nodemon server/app",
+    "dev:debug": "DEBUG=*,-nodemon*,-send* npm run dev",
+    "build:scss": "node-sass client/scss/styles.scss  client/css/styles.css",
+    "build:scss:watch": "node-sass client/scss/styles.scss  client/css/styles.css --watch"
   },
   "keywords": [
     "poll",
@@ -16,9 +18,12 @@
   "author": "jalbertsr",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.15.4"
+    "chart.js": "^2.6.0",
+    "express": "^4.15.4",
+    "mongoose": "^4.11.7"
   },
   "devDependencies": {
+    "node-sass": "^4.5.3",
     "nodemon": "^1.11.0"
   }
 }
