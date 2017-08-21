@@ -1,0 +1,24 @@
+{
+  "name": "suffragium",
+  "version": "1.0.0",
+  "description": "Create polls quickly and watch the results change in real time!",
+  "main": "app.js",
+  "scripts": {
+    "prestart": "npm install",
+    "start": "node app",
+    "dev": "nodemon app",
+    "dev:debug": "DEBUG=*,-nodemon*,-send* npm run dev"
+  },
+  "keywords": [
+    "poll",
+    "survey"
+  ],
+  "author": "jalbertsr",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.15.4"
+  },
+  "devDependencies": {
+    "nodemon": "^1.11.0"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Suffragium",
+  "authors": [
+    "Joan Albert Segura <jalbertsr@protonmail.ch>"
+  ],
+  "description": "Create polls quickly and watch the results change in real time!",
+  "main": "app.js",
+  "keywords": [
+    "poll",
+    "survey"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
