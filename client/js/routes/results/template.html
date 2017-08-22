@@ -1,8 +1,26 @@
-<div class="container">
+<div class="navbar-fixed">
+    <nav id="nav_f" class="default_color" role="navigation">
+        <div class="container">
+            <div class="nav-wrapper">
+                <a href="#" id="logo-container" class="brand-logo">Suffragium</a>
+                <ul class="right hide-on-med-and-down">
+                    <li><a href="#!/register">Register</a></li>
+                    <li><a href="#!/login">Login</a></li>
+                </ul>
+                <ul id="nav-mobile" class="side-nav">
+                    <li><a href="#!/register">Register</a></li>
+                    <li><a href="#!/login">Login</a></li>
+                </ul>
+                <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+            </div>
+        </div>
+    </nav>
+</div>
+<div class="container-results">
     <div class="row">
-        <div class="row col-sm-5 container-question">
+        <div class="row col s5 offset-s1 container-question">
             <form>
-                <p class="question-title">Question will display here bla bla ?</p>
+                <p class="question-title brand-logo">Question will display here bla bla ?</p>
                 <!-- begin option -->
                 <div class="container space">
                     <input type="checkbox" id="option1">
@@ -13,45 +31,38 @@
                     <label for="option2">option2</label>
                 </div>
                 <div class="container space">
-                    <input type="checkbox" id="option3" name="iCheck">
+                    <input type="checkbox" id="option3">
                     <label for="option3">option3</label>
                 </div>
                 <div class="container space">
-                    <input type="checkbox" id="option4" name="iCheck" checked>
+                    <input type="checkbox" id="option4">
                     <label for="option4">option4</label>
                 </div>
                 <!-- end option -->
-                <button >Vote</button>
+                <button class="btn waves-effect waves-light" type="submit" name="action">Vote
+                    <i class="material-icons right">send</i>
+                </button>
             </form>
-            <div class="survey-info">
-            	<p>Total Votes: 113</p>
-            	<p>Survey Close date: 10/3/1856</p>
+            <div class="survey-info brand-logo">
+                <p>Total Votes: 113</p>
+                <p>Survey Close date: 10/3/1856</p>
             </div>
         </div>
-        <div class="col-sm-7 row container-graph">
-            <div class="col-md-offset-4 col-sm-6">
-                <canvas style="background-color: red" id="myChart" width="400" height="400">
-                    aqui va grafico
-                </canvas>
-                <div>
-                    <select>
-                        <option value="" selected>Choose Chart</option>
-                        <option>Bar Chart</option>
-                        <option>Line Chart</option>
-                        <option>Stack Chart</option>
-                        <option>Doughnut Chart</option>
-                    </select>
+        <div class="col s6 row container-graph">
+            <div>
+                <div id="myChart" width="400" height="400">
+                    <img src="http://i1.wp.com/bav0.com/wp-content/uploads/sites/11/2014/06/doughnut-chart.png">
                 </div>
             </div>
+            <div class="input-field col s6">
+            <select>
+                <option value="" disabled selected>Choose Chart</option>
+                <option>Bar Chart</option>
+                <option>Line Chart</option>
+                <option>Stack Chart</option>
+                <option>Doughnut Chart</option>
+            </select>
+        </div>
         </div>
     </div>
 </div>
-
-<!-- <script>
-var ctx = document.getElementById('myChart').getContext('2d')
-var myBarChart = new Chart (ctx, {
-  type: 'bar',
-  data: data,
-  options: options
-})
-</script> -->

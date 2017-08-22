@@ -286,5 +286,55 @@ nav a.button-collapse {
 }
 
 footer.page-footer {
-    margin-top: 0px !important;
+  margin-top: 0px !important;
 }
+
+input[type=text]:focus:not([readonly])+label, input[type=password]:focus:not([readonly])+label, input[type=email]:focus:not([readonly])+label, input[type=url]:focus:not([readonly])+label, input[type=time]:focus:not([readonly])+label, input[type=date]:focus:not([readonly])+label, input[type=datetime-local]:focus:not([readonly])+label, input[type=tel]:focus:not([readonly])+label, input[type=number]:focus:not([readonly])+label, input[type=search]:focus:not([readonly])+label, textarea.materialize-textarea:focus:not([readonly])+label {
+  color: #2196F3 !important;
+}
+
+h1.title-color{  
+  color: #2196F3;
+}
+
+.container.row.signup {
+    margin-top: 8% !important;
+    margin-left: 35% !important;
+}
+
+.space-top{
+    margin-top: 40px;
+}
+
+.divider{
+    width: 65%;
+}
+
+.container-results{
+    margin-top: 60px;
+}
+.container.space{
+    margin-left: 0;
+}
+
+.btn.waves-effect.waves-light{
+    background-color: #2196F3;
+}
+
+.question-title.brand-logo, .survey-info.brand-logo{
+    position: relative;
+    color: black;
+    font-size: 20px;
+    display: block;
+}
+
+
+.input-field{
+  padding-left: 0px !important;
+}
+
+select {
+  display: block !important;
+}
+
+
