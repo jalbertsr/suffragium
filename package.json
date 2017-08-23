@@ -5,8 +5,8 @@
   "main": "app.js",
   "scripts": {
     "prestart": "npm install bower install",
-    "start": "node server/app.js",
-    "dev": "nodemon server/app.js",
+    "start": "node Server/app.js",
+    "dev": "nodemon Server/app.js",
     "dev:debug": "DEBUG=*,-nodemon*,-send* npm run dev",
     "build:scss": "node-sass client/scss/styles.scss  client/css/styles.css",
     "build:scss:watch": "node-sass client/scss/styles.scss  client/css/styles.css --watch"
