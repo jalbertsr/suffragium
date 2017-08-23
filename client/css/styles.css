@@ -343,12 +343,19 @@ select {
 
 .question-title.brand-logo.create-poll-title{
     font-size: 30px;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+}
+.owned-polls{
+    margin-bottom: 45px !important;
 }
 
 .btn.waves-effect.waves-light.btn-poll{
     margin-top: 5%;
     width: 100%;
+}
+
+.waves-effect.waves-green .waves-ripple{
+    background-color: #2196F3 !important;
 }
 
 .personal-polls{
@@ -366,8 +373,36 @@ select {
 
 .info-icon{
     margin-top: 10px;
+    color: #2196F3 !important;
 }
 
 .select-duplication{
     padding: 0px !important; 
+}
+
+.modal{
+    z-index: 1;
+}
+
+.modal-content{
+    padding-bottom: 0px !important;
+}
+.modal-title{
+    margin-bottom: 30px;
+}
+
+.info-pointer{
+    cursor: pointer !important;
+}
+
+.label-add{
+    margin-left: 20px;
+}
+
+.add-margin{
+    margin-top: 0px !important;
+}
+
+.question-own-poll{
+    margin-left: 10px;
 }

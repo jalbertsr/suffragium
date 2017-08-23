@@ -15,7 +15,7 @@
     </nav>
 </div>
 <div class="container row create-poll">
-    <div class="col l6 s12">
+    <div class="col l6 offset-s2 s9">
         <form>
             <p class="question-title brand-logo create-poll-title">Create your poll</p>
             <div class="input-field col s8">
@@ -34,17 +34,24 @@
                 <input class="input-border-color" id="option3" type="text" name="option3">
                 <label for="option3">Option 3</label>
             </div>
+
+            <div class="add-margin  input-field col s8">
+                <span id="addOption" class="info-pointer"><i class="material-icons info-icon">add</i><label class=" info-pointer label-add">Add another option</label></span>
+            </div>
             <div class="input-field col s8 row">
                 <div class="select-duplication col s11">
                     <select>
                         <option value="" disabled selected>Choose checking option:</option>
+                        <option>No Duplication Checking</option>
                         <option>Login Duplication Checking </option>
                         <option>Cookie Browser Duplication Checking</option>
                         <option>IP Duplication Checking</option>
                     </select>
                 </div>
                 <div class="col s1">
-                    <a href="#info-modal"><i class="material-icons info-icon">info_outline</i></a>
+                    <span id="info-activate" class="info-pointer">
+                        <a><i class="material-icons info-icon">info_outline</i></a>
+                    </span>
                 </div>
             </div>
             <div class="select-duplication col s8">
@@ -53,49 +60,67 @@
                 </button>
             </div>
         </form>
+        <!-- begin info modal -->
+        <div id="info-modal" class="modal">
+            <div class="modal-content">
+                <h4 class="modal-title">Duplication Checking Info</h4>
+                <p><strong>IP Duplication Checking</strong> - Duplicate votes will be disallowed based on the IP address of the user.</p>
+                <p><strong>Browser Cookie Duplication Checking</strong> - Duplicate votes will be disallowed based on the browser of the user, allowing multiple votes from the same IP address.</p>
+                <p><strong>No Duplication Checking</strong> - Duplication checking will be disabled and users can vote as many times as they would like.</p>
+                <p><strong>Require User Sign In to Vote</strong> - Voting is not allowed unless the voter is signed into their Suffragium account.</p>
+            </div>
+            <div class="modal-footer">
+                <span><a id="btnClose" class="modal-action btn-flat">Ok</a></span>
+            </div>
+        </div>
+        <!-- end info modal -->
     </div>
-    <div class="col l5 s11 offset-l1">
-        <p class="question-title brand-logo create-poll-title"> My polls </p>
-        <div class="personal-polls">
-            <a href="#"><p>What is your favourite frontend freamwork?</p></a>
-            <div class="switch">
+    <div class="col l5 offset-l1 offset-s2 s9">
+        <p class="question-title brand-logo create-poll-title owned-polls"> My polls </p>
+        <div class="personal-polls row">
+            <a href="#">
+                <p class="question-own-poll">What is your favourite frontend freamwork?</p>
+            </a>
+            <div class="switch col l8 s8">
                 <label>
                     Close
                     <input type="checkbox">
                     <span class="lever"></span> Open
                 </label>
             </div>
+            <div class="col l4 s4">
+                <span class="info-icon info-pointer"><i class="material-icons">delete</i></span>
+            </div>
         </div>
-        <div class="personal-polls">
-           <a href="#"><p>Another question?</p></a>
-            <div class="switch">
+        <div class="personal-polls row">
+            <a href="#">
+                <p class="question-own-poll">Another queston ?</p>
+            </a>
+            <div class="switch col l8 s8">
                 <label>
                     Close
                     <input type="checkbox">
                     <span class="lever"></span> Open
                 </label>
             </div>
+            <div class="col l4 s4">
+                <span class="info-icon info-pointer"><i class="material-icons">delete</i></span>
+            </div>
         </div>
-        <div class="personal-polls">
-            <a href="#"><p>Bla la bla blaaaa?</p></a>
-            <div class="switch">
+        <div class="personal-polls row">
+            <a href="#">
+                <p class="question-own-poll">Bla blaaaa blaaaa blaaa?</p>
+            </a>
+            <div class="switch col l8 s8">
                 <label>
                     Close
                     <input type="checkbox">
                     <span class="lever"></span> Open
                 </label>
             </div>
+            <div class="col l4 s4">
+                <span class="info-icon info-pointer"><i class="material-icons">delete</i></span>
+            </div>
         </div>
-    </div>
-</div>
-
-<!-- info modal -->
-<div id="info-modal" class="modal">
-    <div class="modal-content">
-        <h4>Modal Header</h4>
-        <p>A bunch of text</p>
-    </div>
-    <div class="modal-footer">
-        <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Agree</a>
     </div>
 </div>

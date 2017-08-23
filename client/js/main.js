@@ -1,5 +1,6 @@
 /* global $ */
-
-$(document).ready(function () {
-  $('select').material_select()
+$(function () {
+  $(document).ready(function () {
+    $('select').material_select()
+  })
 })
