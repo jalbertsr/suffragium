@@ -4,7 +4,7 @@ angular.module('suffragium')
 .config(function ($routeProvider) {
   $routeProvider
     .when('/register', {
-      templateUrl: 'js/routes/register/template.html',
+      templateUrl: 'app/routes/register/template.html',
       controller: 'registerController'
     })
 })

@@ -1,3 +1,5 @@
-/* global angular */
+/* global $ */
 
-angular.module('suffragium', ['ngRoute'])
+$(document).ready(function () {
+  $('select').material_select()
+})

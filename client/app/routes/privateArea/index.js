@@ -4,7 +4,7 @@ angular.module('suffragium')
 .config(function ($routeProvider) {
   $routeProvider
     .when('/username', { // add /:username
-      templateUrl: 'js/routes/home/template.html',
+      templateUrl: 'app/routes/privateArea/template.html',
       controller: 'privateAreaController'
     })
 })

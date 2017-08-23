@@ -2,8 +2,8 @@
 angular.module('suffragium')
 .config(function ($routeProvider) {
   $routeProvider
-    .when('/', {
-      templateUrl: 'js/routes/home/template.html',
-      controller: 'homeController'
+    .when('/login', {
+      templateUrl: 'app/routes/login/template.html',
+      controller: 'loginController'
     })
 })

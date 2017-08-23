@@ -1,0 +1,101 @@
+<div class="navbar-fixed">
+    <nav id="nav_f" class="default_color" role="navigation">
+        <div class="container">
+            <div class="nav-wrapper">
+                <a href="#" id="logo-container" class="brand-logo">Suffragium</a>
+                <ul class="right hide-on-med-and-down">
+                    <li><a href="/logout">Logout</a></li>
+                </ul>
+                <ul id="nav-mobile" class="side-nav">
+                    <li><a href="/logout">Login</a></li>
+                </ul>
+                <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+            </div>
+        </div>
+    </nav>
+</div>
+<div class="container row create-poll">
+    <div class="col l6 s12">
+        <form>
+            <p class="question-title brand-logo create-poll-title">Create your poll</p>
+            <div class="input-field col s8">
+                <input class="input-border-color" id="question" type="text" class="validate" required>
+                <label for="question">Type your question here</label>
+            </div>
+            <div class="input-field col s8">
+                <input class="input-border-color" id="option1" type="text" name="option1" required>
+                <label for="option1">Option 1</label>
+            </div>
+            <div class="input-field col s8">
+                <input class="input-border-color" id="option2" type="text" name="option2" required>
+                <label for="option2">Option 2</label>
+            </div>
+            <div class="input-field col s8">
+                <input class="input-border-color" id="option3" type="text" name="option3">
+                <label for="option3">Option 3</label>
+            </div>
+            <div class="input-field col s8 row">
+                <div class="select-duplication col s11">
+                    <select>
+                        <option value="" disabled selected>Choose checking option:</option>
+                        <option>Login Duplication Checking </option>
+                        <option>Cookie Browser Duplication Checking</option>
+                        <option>IP Duplication Checking</option>
+                    </select>
+                </div>
+                <div class="col s1">
+                    <a href="#info-modal"><i class="material-icons info-icon">info_outline</i></a>
+                </div>
+            </div>
+            <div class="select-duplication col s8">
+                <button class="btn waves-effect waves-light btn-poll" type="submit" name="action">Create Poll
+                    <i class="material-icons right">send</i>
+                </button>
+            </div>
+        </form>
+    </div>
+    <div class="col l5 s11 offset-l1">
+        <p class="question-title brand-logo create-poll-title"> My polls </p>
+        <div class="personal-polls">
+            <a href="#"><p>What is your favourite frontend freamwork?</p></a>
+            <div class="switch">
+                <label>
+                    Close
+                    <input type="checkbox">
+                    <span class="lever"></span> Open
+                </label>
+            </div>
+        </div>
+        <div class="personal-polls">
+           <a href="#"><p>Another question?</p></a>
+            <div class="switch">
+                <label>
+                    Close
+                    <input type="checkbox">
+                    <span class="lever"></span> Open
+                </label>
+            </div>
+        </div>
+        <div class="personal-polls">
+            <a href="#"><p>Bla la bla blaaaa?</p></a>
+            <div class="switch">
+                <label>
+                    Close
+                    <input type="checkbox">
+                    <span class="lever"></span> Open
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- info modal -->
+<div id="info-modal" class="modal">
+    <div class="modal-content">
+        <h4>Modal Header</h4>
+        <p>A bunch of text</p>
+    </div>
+    <div class="modal-footer">
+        <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Agree</a>
+    </div>
+</div>

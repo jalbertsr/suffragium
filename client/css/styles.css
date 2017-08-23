@@ -1,9 +1,9 @@
 .container-graph {
-  height: 500px;
+  margin-top: 4%;
 }
 
 .container-question {
-  height: 500px;
+  margin-top: 4%;
 }
 
 .space{
@@ -309,7 +309,7 @@ h1.title-color{
 .divider{
     width: 65%;
 }
-
+p
 .container-results{
     margin-top: 60px;
 }
@@ -337,4 +337,37 @@ select {
   display: block !important;
 }
 
+.create-poll{
+  margin-top: 2%;
+}
 
+.question-title.brand-logo.create-poll-title{
+    font-size: 30px;
+    margin-bottom: 15px;
+}
+
+.btn.waves-effect.waves-light.btn-poll{
+    margin-top: 5%;
+    width: 100%;
+}
+
+.personal-polls{
+    margin-top: 6%;
+    margin-bottom: 9%;
+}
+
+.switch label input[type=checkbox]:checked+.lever{
+    background-color: #2196F3 !important;
+}
+
+.switch label input[type=checkbox]:checked+.lever:after{
+    background-color: #2196F3 !important;
+}
+
+.info-icon{
+    margin-top: 10px;
+}
+
+.select-duplication{
+    padding: 0px !important; 
+}
