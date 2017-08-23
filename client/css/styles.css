@@ -412,6 +412,13 @@ select {
     font-weight: 400;
 }
 
+.title-create-style{
+    font-family: 'Rubik', sans-serif;
+    font-weight: 400;
+    font-size: 35px;
+    color: #505050;
+}
+
 .title-size{
     font-size: 22px !important;
     margin-bottom: 30px;
@@ -420,3 +427,4 @@ select {
 .info-results{
     margin-top: 40px;
 }
+
