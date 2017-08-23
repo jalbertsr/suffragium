@@ -406,3 +406,17 @@ select {
 .question-own-poll{
     margin-left: 10px;
 }
+
+.title-results-style{
+    font-family: 'Rubik', sans-serif;
+    font-weight: 400;
+}
+
+.title-size{
+    font-size: 22px !important;
+    margin-bottom: 30px;
+}
+
+.info-results{
+    margin-top: 40px;
+}

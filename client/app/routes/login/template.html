@@ -34,8 +34,8 @@
                     <div class="input-field col s8">
                         <input class="input-border-color" id="password" type="password" name="password" ng-model="password" ng-minlength='6' class="validate" required>
                         <label for="password">Password</label>
+                        <p class="alert alert-danger" ng-show="form-register.password.$error.minlength || form.password.$invalid">Your password must be at least 6 characters.</p>
                     </div>
-                    <p class="alert alert-danger" ng-show="form-register.password.$error.minlength || form.password.$invalid">Your password must be at least 6 characters.</p>
                     <div class="space-top text-center col s8">
                         <button ng-disabled="form-register.$invalid" class="waves-effect waves-light btn done default-color">
                             <i class="material-icons left demo-color">done</i> Done
