@@ -6,6 +6,7 @@
   "scripts": {
     "prestart": "npm install",
     "start": "node server/app",
+    "postinstall": "bower install",
     "dev": "nodemon server/app",
     "dev:debug": "DEBUG=*,-nodemon*,-send* npm run dev",
     "build:scss": "node-sass client/scss/styles.scss  client/css/styles.css",
