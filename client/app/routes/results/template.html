@@ -39,26 +39,28 @@
                     <label for="option4">option4</label>
                 </div>
                 <!-- end option -->
-                <button class="btn waves-effect waves-light" type="submit" name="action">Vote
+                <button class="btn voted" type="submit" name="action" onclick="Materialize.toast('Voted!', 1000)">Vote
                     <i class="material-icons right">send</i>
                 </button>
             </form>
             <div class="title-results-style">
-                <p class="info-results">Total Votes: 113</p>
+                <p class="info-results">Total Votes: {{30+45}}</p>
                 <p>Status: Closed</p>
             </div>
         </div>
         <div class="col s11 l6 row container-graph">
-                <canvas id="myChart" style="border:1px solid #000000;"></canvas>
+            <canvas id="myChart" style="border:1px solid #000000;"></canvas>
             <div class="input-field col s6">
-            <select>
-                <option value="" disabled selected>Choose Chart</option>
-                <option>Bar Chart</option>
-                <option>Line Chart</option>
-                <option>Stack Chart</option>
-                <option>Doughnut Chart</option>
-            </select>
-        </div>
+                <select ng-change="changeChart(chartType)" ng-model="chartType">
+                  <option value="" disabled>Choose Chart</option>
+                  <option value="bar">Bar Chart</option>
+                  <option value="horizontalBar">Horitzontal Bar Chart</option>
+                  <option value="line">Line Chart</option>
+                  <option value="doughnut">Doughnut Chart</option>
+                  <option value="pie">Pie Chart</option>
+                  <option>{{3+4}}</option>
+                </select>
+            </div>
         </div>
     </div>
 </div>

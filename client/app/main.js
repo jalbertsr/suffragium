@@ -1,3 +1,6 @@
 /* global angular */
 
-angular.module('suffragium', ['ngRoute'])
+angular.module('suffragium', [
+  'ngRoute',
+  'chartjs-directive'
+])

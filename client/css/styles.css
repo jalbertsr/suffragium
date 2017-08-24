@@ -428,3 +428,6 @@ select {
     margin-top: 40px;
 }
 
+button.btn.voted {
+    background-color: #2196F3;
+}

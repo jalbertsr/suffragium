@@ -33,12 +33,5 @@
       element.insertAdjacentHTML('afterend', optionInput)
       optionNumber++
     }
-
-    // not-working
-    // window.onclick = function (e) {
-    //   if (e.target == modal) {
-    //     modal.style.display = 'none'
-    //   }
-    // }
   }
 })()
