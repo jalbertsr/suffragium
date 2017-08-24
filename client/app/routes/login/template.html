@@ -37,9 +37,9 @@
                         <p class="alert alert-danger" ng-show="form-register.password.$error.minlength || form.password.$invalid">Your password must be at least 6 characters.</p>
                     </div>
                     <div class="space-top text-center col s8">
-                        <button ng-disabled="form-register.$invalid" class="waves-effect waves-light btn done default-color" onclick="Materialize.toast('Logged!', 1000)">
+                        <a href="/#!/username"><button ng-disabled="form-register.$invalid" class="waves-effect waves-light btn done default-color" onclick="Materialize.toast('Logged!', 1000)">
                             <i class="material-icons left demo-color">done</i> Done
-                        </button>
+                        </button></a>
                         <button type="button" class="waves-effect waves-light btn cancel default-color">
                             <i class="material-icons left">clear</i>Cancel
                         </button>
