@@ -14,7 +14,7 @@
     const btnClose = document.getElementById('btnClose')
     const addOption = document.getElementById('addOption')
 
-    let optionNumber = 4
+    let optionNumber = 3
 
     btn.onclick = function () {
       modal.style.display = 'block'

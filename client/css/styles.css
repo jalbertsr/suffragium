@@ -432,3 +432,11 @@ select {
 button.btn.voted {
     background-color: #2196F3;
 }
+
+.multiple-vote-space{
+    margin-top: 40px !important;
+}
+
+.duplicaton-top-space{
+    margin-top: 10% !important;
+}
