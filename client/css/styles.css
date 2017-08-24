@@ -440,3 +440,17 @@ button.btn.voted {
 .duplicaton-top-space{
     margin-top: 10% !important;
 }
+
+div.principal-btn{
+    text-align:center;
+}
+
+.canvas-graph-style{
+    border:1px solid #000000;
+    padding: 15px;
+}
+
+.save-button{
+    margin-top: 3.5%;
+    padding: 0px !important;
+}
