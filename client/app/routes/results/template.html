@@ -18,7 +18,7 @@
 </div>
 <div class="container-results">
     <div class="row">
-        <div class="row col s11 l5 offset-l1 container-question">
+        <div class="row col s11 l4 offset-l1 container-question">
             <form>
                 <p class="title-results-style title-size">Question will display here bla bla ?</p>
                 <!-- begin option -->
@@ -49,7 +49,7 @@
             </div>
         </div>
         <div class="col s11 l6 row container-graph">
-            <canvas id="myChart" style="border:1px solid #000000;"></canvas>
+            <canvas height="120" width="230" id="myChart" style="border:1px solid #000000;"></canvas>
             <div class="input-field col s6">
                 <select ng-change="changeChart(chartType)" ng-model="chartType">
                   <option value="" disabled>Choose Chart</option>
@@ -58,7 +58,6 @@
                   <option value="line">Line Chart</option>
                   <option value="doughnut">Doughnut Chart</option>
                   <option value="pie">Pie Chart</option>
-                  <option>{{3+4}}</option>
                 </select>
             </div>
         </div>
