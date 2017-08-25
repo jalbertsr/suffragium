@@ -96,11 +96,11 @@
             data: pieData
           })
       }
-      // var a = setTimeout(function () {
-      //   const graphUrl = ctx.toDataURL()
-      //   window.myImg = graphUrl
-      //   console.log(graphUrl)
-      // }, 1000)
+      var a = setTimeout(function () {
+        const graphUrl = ctx.toDataURL()
+        window.myImg = graphUrl
+        console.log(graphUrl)
+      }, 1000)
     }
 
     /* --------------- BAR CHART ---------------- */

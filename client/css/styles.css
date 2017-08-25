@@ -454,3 +454,14 @@ div.principal-btn{
     margin-top: 3.5%;
     padding: 0px !important;
 }
+
+.thumbnail-card{
+    background-size: cover;
+    -webkit-background-size: contain;
+    -moz-background-size: contain;
+    -o-background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center center; 
+    overflow:visible;
+    min-height: 160px
+}

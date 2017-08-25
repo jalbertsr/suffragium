@@ -7,8 +7,6 @@
   app.controller('privateAreaController', privateAreaController)
 
   function privateAreaController () {
-    var self = this
-
     const modal = document.getElementById('info-modal')
     const btn = document.getElementById('info-activate')
     const btnClose = document.getElementById('btnClose')

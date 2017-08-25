@@ -1,4 +1,4 @@
-const Poll = require('')
+const Poll = require('../../../models/poll.js')
 
 function handleDeletePoll (req, res) {
   const id = req.params.id
