@@ -1,10 +1,9 @@
-/* global angular */
-
-angular.module('suffragium')
-.config(function ($routeProvider) {
+function registerConfig ($routeProvider) {
   $routeProvider
     .when('/register', {
       templateUrl: 'app/routes/register/template.html',
       controller: 'registerController'
     })
-})
+}
+
+module.exports = registerConfig
