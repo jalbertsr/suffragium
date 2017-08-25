@@ -465,3 +465,7 @@ div.principal-btn{
     overflow:visible;
     min-height: 160px
 }
+
+.signup-screen{
+    width: 75% !important;
+}

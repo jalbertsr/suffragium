@@ -1,7 +1,10 @@
+var fs = require('fs')
+var htmlLogin = fs.readFileSync(__dirname + '/template.html', 'utf8');
+
 function configLogin ($routeProvider) {
   $routeProvider
     .when('/login', {
-      templateUrl: 'app/routes/login/template.html',
+      template: htmlLogin,
       controller: 'loginController'
     })
 }

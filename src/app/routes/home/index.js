@@ -1,7 +1,10 @@
+var fs = require('fs')
+var htmlHome = fs.readFileSync(__dirname + '/template.html', 'utf8');
+
 function configRouteHome ($routeProvider) {
   $routeProvider
     .when('/', {
-      templateUrl: 'app/routes/home/template.html',
+      template: htmlHome,
       controller: 'homeController'
     })
 }

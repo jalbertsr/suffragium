@@ -1,7 +1,10 @@
+var fs = require('fs')
+var htmlResults = fs.readFileSync(__dirname + '/template.html', 'utf8');
+
 function resultsConfig ($routeProvider) {
   $routeProvider
     .when('/results', { // add /results/:id
-      templateUrl: 'app/routes/results/template.html',
+      template: htmlResults,
       controller: 'resultsController'
     })
 }

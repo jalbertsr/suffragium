@@ -1,7 +1,10 @@
+var fs = require('fs')
+var htmlRegister = fs.readFileSync(__dirname + '/template.html', 'utf8');
+
 function registerConfig ($routeProvider) {
   $routeProvider
     .when('/register', {
-      templateUrl: 'app/routes/register/template.html',
+      template: htmlRegister,
       controller: 'registerController'
     })
 }
