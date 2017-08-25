@@ -35128,6 +35128,610 @@ require('./angular');
 module.exports = angular;
 
 },{"./angular":3}],5:[function(require,module,exports){
+/* FileSaver.js
+ * A saveAs() FileSaver implementation.
+ * 1.3.2
+ * 2016-06-16 18:25:19
+ *
+ * By Eli Grey, http://eligrey.com
+ * License: MIT
+ *   See https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md
+ */
+
+/*global self */
+/*jslint bitwise: true, indent: 4, laxbreak: true, laxcomma: true, smarttabs: true, plusplus: true */
+
+/*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */
+
+var saveAs = saveAs || (function(view) {
+	"use strict";
+	// IE <10 is explicitly unsupported
+	if (typeof view === "undefined" || typeof navigator !== "undefined" && /MSIE [1-9]\./.test(navigator.userAgent)) {
+		return;
+	}
+	var
+		  doc = view.document
+		  // only get URL when necessary in case Blob.js hasn't overridden it yet
+		, get_URL = function() {
+			return view.URL || view.webkitURL || view;
+		}
+		, save_link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a")
+		, can_use_save_link = "download" in save_link
+		, click = function(node) {
+			var event = new MouseEvent("click");
+			node.dispatchEvent(event);
+		}
+		, is_safari = /constructor/i.test(view.HTMLElement) || view.safari
+		, is_chrome_ios =/CriOS\/[\d]+/.test(navigator.userAgent)
+		, throw_outside = function(ex) {
+			(view.setImmediate || view.setTimeout)(function() {
+				throw ex;
+			}, 0);
+		}
+		, force_saveable_type = "application/octet-stream"
+		// the Blob API is fundamentally broken as there is no "downloadfinished" event to subscribe to
+		, arbitrary_revoke_timeout = 1000 * 40 // in ms
+		, revoke = function(file) {
+			var revoker = function() {
+				if (typeof file === "string") { // file is an object URL
+					get_URL().revokeObjectURL(file);
+				} else { // file is a File
+					file.remove();
+				}
+			};
+			setTimeout(revoker, arbitrary_revoke_timeout);
+		}
+		, dispatch = function(filesaver, event_types, event) {
+			event_types = [].concat(event_types);
+			var i = event_types.length;
+			while (i--) {
+				var listener = filesaver["on" + event_types[i]];
+				if (typeof listener === "function") {
+					try {
+						listener.call(filesaver, event || filesaver);
+					} catch (ex) {
+						throw_outside(ex);
+					}
+				}
+			}
+		}
+		, auto_bom = function(blob) {
+			// prepend BOM for UTF-8 XML and text/* types (including HTML)
+			// note: your browser will automatically convert UTF-16 U+FEFF to EF BB BF
+			if (/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
+				return new Blob([String.fromCharCode(0xFEFF), blob], {type: blob.type});
+			}
+			return blob;
+		}
+		, FileSaver = function(blob, name, no_auto_bom) {
+			if (!no_auto_bom) {
+				blob = auto_bom(blob);
+			}
+			// First try a.download, then web filesystem, then object URLs
+			var
+				  filesaver = this
+				, type = blob.type
+				, force = type === force_saveable_type
+				, object_url
+				, dispatch_all = function() {
+					dispatch(filesaver, "writestart progress write writeend".split(" "));
+				}
+				// on any filesys errors revert to saving with object URLs
+				, fs_error = function() {
+					if ((is_chrome_ios || (force && is_safari)) && view.FileReader) {
+						// Safari doesn't allow downloading of blob urls
+						var reader = new FileReader();
+						reader.onloadend = function() {
+							var url = is_chrome_ios ? reader.result : reader.result.replace(/^data:[^;]*;/, 'data:attachment/file;');
+							var popup = view.open(url, '_blank');
+							if(!popup) view.location.href = url;
+							url=undefined; // release reference before dispatching
+							filesaver.readyState = filesaver.DONE;
+							dispatch_all();
+						};
+						reader.readAsDataURL(blob);
+						filesaver.readyState = filesaver.INIT;
+						return;
+					}
+					// don't create more object URLs than needed
+					if (!object_url) {
+						object_url = get_URL().createObjectURL(blob);
+					}
+					if (force) {
+						view.location.href = object_url;
+					} else {
+						var opened = view.open(object_url, "_blank");
+						if (!opened) {
+							// Apple does not allow window.open, see https://developer.apple.com/library/safari/documentation/Tools/Conceptual/SafariExtensionGuide/WorkingwithWindowsandTabs/WorkingwithWindowsandTabs.html
+							view.location.href = object_url;
+						}
+					}
+					filesaver.readyState = filesaver.DONE;
+					dispatch_all();
+					revoke(object_url);
+				}
+			;
+			filesaver.readyState = filesaver.INIT;
+
+			if (can_use_save_link) {
+				object_url = get_URL().createObjectURL(blob);
+				setTimeout(function() {
+					save_link.href = object_url;
+					save_link.download = name;
+					click(save_link);
+					dispatch_all();
+					revoke(object_url);
+					filesaver.readyState = filesaver.DONE;
+				});
+				return;
+			}
+
+			fs_error();
+		}
+		, FS_proto = FileSaver.prototype
+		, saveAs = function(blob, name, no_auto_bom) {
+			return new FileSaver(blob, name || blob.name || "download", no_auto_bom);
+		}
+	;
+	// IE 10+ (native saveAs)
+	if (typeof navigator !== "undefined" && navigator.msSaveOrOpenBlob) {
+		return function(blob, name, no_auto_bom) {
+			name = name || blob.name || "download";
+
+			if (!no_auto_bom) {
+				blob = auto_bom(blob);
+			}
+			return navigator.msSaveOrOpenBlob(blob, name);
+		};
+	}
+
+	FS_proto.abort = function(){};
+	FS_proto.readyState = FS_proto.INIT = 0;
+	FS_proto.WRITING = 1;
+	FS_proto.DONE = 2;
+
+	FS_proto.error =
+	FS_proto.onwritestart =
+	FS_proto.onprogress =
+	FS_proto.onwrite =
+	FS_proto.onabort =
+	FS_proto.onerror =
+	FS_proto.onwriteend =
+		null;
+
+	return saveAs;
+}(
+	   typeof self !== "undefined" && self
+	|| typeof window !== "undefined" && window
+	|| this.content
+));
+// `self` is undefined in Firefox for Android content script context
+// while `this` is nsIContentFrameMessageManager
+// with an attribute `content` that corresponds to the window
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports.saveAs = saveAs;
+} else if ((typeof define !== "undefined" && define !== null) && (define.amd !== null)) {
+  define("FileSaver.js", function() {
+    return saveAs;
+  });
+}
+
+},{}],6:[function(require,module,exports){
+(function (process){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+// resolves . and .. elements in a path array with directory names there
+// must be no slashes, empty elements, or device names (c:\) in the array
+// (so also no leading and trailing slashes - it does not distinguish
+// relative and absolute paths)
+function normalizeArray(parts, allowAboveRoot) {
+  // if the path tries to go above the root, `up` ends up > 0
+  var up = 0;
+  for (var i = parts.length - 1; i >= 0; i--) {
+    var last = parts[i];
+    if (last === '.') {
+      parts.splice(i, 1);
+    } else if (last === '..') {
+      parts.splice(i, 1);
+      up++;
+    } else if (up) {
+      parts.splice(i, 1);
+      up--;
+    }
+  }
+
+  // if the path is allowed to go above the root, restore leading ..s
+  if (allowAboveRoot) {
+    for (; up--; up) {
+      parts.unshift('..');
+    }
+  }
+
+  return parts;
+}
+
+// Split a filename into [root, dir, basename, ext], unix version
+// 'root' is just a slash, or nothing.
+var splitPathRe =
+    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
+var splitPath = function(filename) {
+  return splitPathRe.exec(filename).slice(1);
+};
+
+// path.resolve([from ...], to)
+// posix version
+exports.resolve = function() {
+  var resolvedPath = '',
+      resolvedAbsolute = false;
+
+  for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
+    var path = (i >= 0) ? arguments[i] : process.cwd();
+
+    // Skip empty and invalid entries
+    if (typeof path !== 'string') {
+      throw new TypeError('Arguments to path.resolve must be strings');
+    } else if (!path) {
+      continue;
+    }
+
+    resolvedPath = path + '/' + resolvedPath;
+    resolvedAbsolute = path.charAt(0) === '/';
+  }
+
+  // At this point the path should be resolved to a full absolute path, but
+  // handle relative paths to be safe (might happen when process.cwd() fails)
+
+  // Normalize the path
+  resolvedPath = normalizeArray(filter(resolvedPath.split('/'), function(p) {
+    return !!p;
+  }), !resolvedAbsolute).join('/');
+
+  return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
+};
+
+// path.normalize(path)
+// posix version
+exports.normalize = function(path) {
+  var isAbsolute = exports.isAbsolute(path),
+      trailingSlash = substr(path, -1) === '/';
+
+  // Normalize the path
+  path = normalizeArray(filter(path.split('/'), function(p) {
+    return !!p;
+  }), !isAbsolute).join('/');
+
+  if (!path && !isAbsolute) {
+    path = '.';
+  }
+  if (path && trailingSlash) {
+    path += '/';
+  }
+
+  return (isAbsolute ? '/' : '') + path;
+};
+
+// posix version
+exports.isAbsolute = function(path) {
+  return path.charAt(0) === '/';
+};
+
+// posix version
+exports.join = function() {
+  var paths = Array.prototype.slice.call(arguments, 0);
+  return exports.normalize(filter(paths, function(p, index) {
+    if (typeof p !== 'string') {
+      throw new TypeError('Arguments to path.join must be strings');
+    }
+    return p;
+  }).join('/'));
+};
+
+
+// path.relative(from, to)
+// posix version
+exports.relative = function(from, to) {
+  from = exports.resolve(from).substr(1);
+  to = exports.resolve(to).substr(1);
+
+  function trim(arr) {
+    var start = 0;
+    for (; start < arr.length; start++) {
+      if (arr[start] !== '') break;
+    }
+
+    var end = arr.length - 1;
+    for (; end >= 0; end--) {
+      if (arr[end] !== '') break;
+    }
+
+    if (start > end) return [];
+    return arr.slice(start, end - start + 1);
+  }
+
+  var fromParts = trim(from.split('/'));
+  var toParts = trim(to.split('/'));
+
+  var length = Math.min(fromParts.length, toParts.length);
+  var samePartsLength = length;
+  for (var i = 0; i < length; i++) {
+    if (fromParts[i] !== toParts[i]) {
+      samePartsLength = i;
+      break;
+    }
+  }
+
+  var outputParts = [];
+  for (var i = samePartsLength; i < fromParts.length; i++) {
+    outputParts.push('..');
+  }
+
+  outputParts = outputParts.concat(toParts.slice(samePartsLength));
+
+  return outputParts.join('/');
+};
+
+exports.sep = '/';
+exports.delimiter = ':';
+
+exports.dirname = function(path) {
+  var result = splitPath(path),
+      root = result[0],
+      dir = result[1];
+
+  if (!root && !dir) {
+    // No dirname whatsoever
+    return '.';
+  }
+
+  if (dir) {
+    // It has a dirname, strip trailing slash
+    dir = dir.substr(0, dir.length - 1);
+  }
+
+  return root + dir;
+};
+
+
+exports.basename = function(path, ext) {
+  var f = splitPath(path)[2];
+  // TODO: make this comparison case-insensitive on windows?
+  if (ext && f.substr(-1 * ext.length) === ext) {
+    f = f.substr(0, f.length - ext.length);
+  }
+  return f;
+};
+
+
+exports.extname = function(path) {
+  return splitPath(path)[3];
+};
+
+function filter (xs, f) {
+    if (xs.filter) return xs.filter(f);
+    var res = [];
+    for (var i = 0; i < xs.length; i++) {
+        if (f(xs[i], i, xs)) res.push(xs[i]);
+    }
+    return res;
+}
+
+// String.prototype.substr - negative index don't work in IE8
+var substr = 'ab'.substr(-1) === 'b'
+    ? function (str, start, len) { return str.substr(start, len) }
+    : function (str, start, len) {
+        if (start < 0) start = str.length + start;
+        return str.substr(start, len);
+    }
+;
+
+}).call(this,require('_process'))
+},{"_process":7}],7:[function(require,module,exports){
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],8:[function(require,module,exports){
 const angular = require('angular')
 const angularRoute = require('angular-route')
 
@@ -35158,15 +35762,16 @@ angular.module('suffragium', [angularRoute])
   .config(registerConfing)
   .config(resultsConfing)
 
-},{"./routes/home/controller":6,"./routes/home/index":7,"./routes/login/controller":8,"./routes/login/index":9,"./routes/privateArea/controller":10,"./routes/privateArea/index":11,"./routes/register/controller":12,"./routes/register/index":13,"./routes/results/controller":14,"./routes/results/index":15,"angular":4,"angular-route":2}],6:[function(require,module,exports){
+},{"./routes/home/controller":9,"./routes/home/index":10,"./routes/login/controller":11,"./routes/login/index":12,"./routes/privateArea/controller":13,"./routes/privateArea/index":14,"./routes/register/controller":15,"./routes/register/index":16,"./routes/results/controller":17,"./routes/results/index":18,"angular":4,"angular-route":2}],9:[function(require,module,exports){
 'use strict'
 function homeController () {}
 
 module.exports = homeController
 
-},{}],7:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
+const path = require('path')
 
-var htmlHome = "<body id=\"top\" class=\"scrollspy\">\n    <!-- Pre Loader -->\n    <div id=\"loader-wrapper\">\n        <div id=\"loader\"></div>\n        <div class=\"loader-section section-left\"></div>\n        <div class=\"loader-section section-right\"></div>\n    </div>\n    <!--Navigation-->\n    <div class=\"navbar-fixed\">\n        <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n            <div class=\"container\">\n                <div class=\"nav-wrapper\">\n                    <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                    <ul class=\"right hide-on-med-and-down\">\n                        <li><a href=\"#!/register\">Register</a></li>\n                        <li><a href=\"#!/login\">Login</a></li>\n                    </ul>\n                    <ul id=\"nav-mobile\" class=\"side-nav\">\n                        <li><a href=\"#!/register\">Register</a></li>\n                        <li><a href=\"#!/login\">Login</a></li>\n                    </ul>\n                    <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n                </div>\n            </div>\n        </nav>\n    </div>\n    <!--Intro and service-->\n    <div id=\"intro\" class=\"section scrollspy\">\n        <div class=\"container\">\n            <div class=\"row\">\n                <div class=\"col s12 principal-btn\">\n                    <h2 class=\"center header text_h2\"> Create your <span class=\"span_h2\"> poll </span>and get results instantly! Visualize data in a way you've never did before! <span class=\"span_h2\">Create your poll now !</span></h2>\n                    <a href=\"#!/register\">\n                        <button class=\"btn voted\" name=\"action\">Create Poll\n                            <i class=\"material-icons right\">chevron_right</i>\n                        </button>\n                    </a>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"center promo promo-example\">\n                        <i class=\"mdi-image-flash-on\"></i>\n                        <h5 class=\"promo-caption\">Speeds Up Decisions</h5>\n                        <p class=\"light center\">Do you have a question and need quick results? Get people's opinon and take a fast decision! </p>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"center promo promo-example\">\n                        <i class=\"mdi-social-group\"></i>\n                        <h5 class=\"promo-caption\">User Experience Focused</h5>\n                        <p class=\"light center\">Easy to use, responsive and simple data visualitzation about the poll results.</p>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"center promo promo-example\">\n                        <i class=\"mdi-hardware-desktop-windows\"></i>\n                        <h5 class=\"promo-caption\">Duplicate Checking Options:</h5>\n                        <ul class=\"light center\">\n                            <li>IP Duplication Checking</li>\n                            <li>Cookie Browser Duplication Checking</li>\n                            <li>Login Duplication Checking</li>\n                        </ul>\n                    </div>\n                </div>\n            </div>\n        </div>\n    </div>\n    <!--Work-->\n    <div class=\"section scrollspy\" id=\"work\">\n        <div class=\"container\">\n            <h2 class=\"header text_b\">Polls</h2>\n            <div class=\"row\">\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"card\">\n                        <div class=\"card-image waves-effect waves-block waves-light\">\n                            <a href=\"#!/results\"><img class=\"thumbnail-card\" src=\"https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360\"></a>\n                        </div>\n                        <div class=\"card-content\">\n                            <span class=\"card-title activator grey-text text-darken-4\">Poll Question </span>\n                            <p><a href=\"#!/results\">Go to poll</a></p>\n                        </div>\n                        <div class=\"card-reveal\">\n                            <span class=\"card-title grey-text text-darken-4\">Poll Question <i class=\"mdi-navigation-close right\"></i></span>\n                            <p>Here is some more information about this poll.</p>\n                        </div>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"card\">\n                        <div class=\"card-image waves-effect waves-block waves-light\">\n                            <a href=\"#!/results\"><img class=\"thumbnail-card\" src=\"https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360\"</a>\n                        </div>\n                        <div class=\"card-content\">\n                            <span class=\"card-title activator grey-text text-darken-4\">Poll Question </span>\n                            <p><a href=\"#!/results\">Go to poll</a></p>\n                        </div>\n                        <div class=\"card-reveal\">\n                            <span class=\"card-title grey-text text-darken-4\">Poll Question <i class=\"mdi-navigation-close right\"></i></span>\n                            <p>Here is some more information about this poll.</p>\n                        </div>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"card\">\n                        <div class=\"card-image waves-effect waves-block waves-light\">\n                            <a href=\"#!/results\"><img class=\"thumbnail-card\" src=\"https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360\"></a>\n                        </div>\n                        <div class=\"card-content\">\n                            <span class=\"card-title activator grey-text text-darken-4\">Poll Question </span>\n                            <p><a href=\"#!/results\">Go to poll</a></p>\n                        </div>\n                        <div class=\"card-reveal\">\n                            <span class=\"card-title grey-text text-darken-4\">Poll Question <i class=\"mdi-navigation-close right\"></i></span>\n                            <p>Here is some more information about this poll.</p>\n                        </div>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"card\">\n                        <div class=\"card-image waves-effect waves-block waves-light\">\n                            <a href=\"#!/results\"><img class=\"thumbnail-card\" src=\"https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360\"></a>\n                        </div>\n                        <div class=\"card-content\">\n                            <span class=\"card-title activator grey-text text-darken-4\">Poll Question </span>\n                            <p><a href=\"#!/results\">Go to poll</a></p>\n                        </div>\n                        <div class=\"card-reveal\">\n                            <span class=\"card-title grey-text text-darken-4\">Poll Question <i class=\"mdi-navigation-close right\"></i></span>\n                            <p>Here is some more information about this poll.</p>\n                        </div>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"card\">\n                        <div class=\"card-image waves-effect waves-block waves-light\">\n                            <a href=\"#!/results\"><img class=\"thumbnail-card\" src=\"https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360\"></a>\n                        </div>\n                        <div class=\"card-content\">\n                            <span class=\"card-title activator grey-text text-darken-4\">Poll Question </span>\n                            <p><a href=\"#!/results\">Go to poll</a></p>\n                        </div>\n                        <div class=\"card-reveal\">\n                            <span class=\"card-title grey-text text-darken-4\">Poll Question <i class=\"mdi-navigation-close right\"></i></span>\n                            <p>Here is some more information about this poll.</p>\n                        </div>\n                    </div>\n                </div>                <div class=\"col s12 m4 l4\">\n                    <div class=\"card\">\n                        <div class=\"card-image waves-effect waves-block waves-light\">\n                            <a href=\"#!/results\"><img class=\"thumbnail-card\" src=\"https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360\"></a>\n                        </div>\n                        <div class=\"card-content\">\n                            <span class=\"card-title activator grey-text text-darken-4\">Poll Question </span>\n                            <p><a href=\"#!/results\">Go to poll</a></p>\n                        </div>\n                        <div class=\"card-reveal\">\n                            <span class=\"card-title grey-text text-darken-4\">Poll Question <i class=\"mdi-navigation-close right\"></i></span>\n                            <p>Here is some more information about this poll.</p>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        </div>\n    </div>\n    <footer id=\"contact\" class=\"page-footer default_color scrollspy\">\n        <div class=\"container\">\n            <div class=\"row\">\n                <div class=\"col l3 s12\">\n                    <h5 class=\"white-text\">Social</h5>\n                    <ul>\n                        <li>\n                            <a class=\"white-text\" href=\"#\">\n                            <i class=\"small fa fa-facebook-square white-text\"></i> Facebook \n                        </a>\n                        </li>\n                        <li>\n                            <a class=\"white-text\" href=\"https://github.com/jalbertsr\">\n                            <i class=\"small fa fa-github-square white-text\"></i> Github \n                        </a>\n                        </li>\n                    </ul>\n                </div>\n            </div>\n        </div>\n        <div class=\"footer-copyright default_color\">\n            <div class=\"container\">\n                Made by <a class=\"white-text\" href=\"#\">Joan Albert Segura</a>. Done with <a class=\"white-text\" href=\"http://materializecss.com/\">materializecss</a>\n            </div>\n        </div>\n    </footer>\n</body>";
+const htmlHome = "<body id=\"top\" class=\"scrollspy\">\n    <!-- Pre Loader -->\n    <div id=\"loader-wrapper\">\n        <div id=\"loader\"></div>\n        <div class=\"loader-section section-left\"></div>\n        <div class=\"loader-section section-right\"></div>\n    </div>\n    <!--Navigation-->\n    <div class=\"navbar-fixed\">\n        <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n            <div class=\"container\">\n                <div class=\"nav-wrapper\">\n                    <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                    <ul class=\"right hide-on-med-and-down\">\n                        <li><a href=\"#!/register\">Register</a></li>\n                        <li><a href=\"#!/login\">Login</a></li>\n                    </ul>\n                    <ul id=\"nav-mobile\" class=\"side-nav\">\n                        <li><a href=\"#!/register\">Register</a></li>\n                        <li><a href=\"#!/login\">Login</a></li>\n                    </ul>\n                    <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n                </div>\n            </div>\n        </nav>\n    </div>\n    <!--Intro and service-->\n    <div id=\"intro\" class=\"section scrollspy\">\n        <div class=\"container\">\n            <div class=\"row\">\n                <div class=\"col s12 principal-btn\">\n                    <h2 class=\"center header text_h2\"> Create your <span class=\"span_h2\"> poll </span>and get results instantly! Visualize data in a way you've never did before! <span class=\"span_h2\">Create your poll now !</span></h2>\n                    <a href=\"#!/register\">\n                        <button class=\"btn voted\" name=\"action\">Create Poll\n                            <i class=\"material-icons right\">chevron_right</i>\n                        </button>\n                    </a>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"center promo promo-example\">\n                        <i class=\"mdi-image-flash-on\"></i>\n                        <h5 class=\"promo-caption\">Speeds Up Decisions</h5>\n                        <p class=\"light center\">Do you have a question and need quick results? Get people's opinon and take a fast decision! </p>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"center promo promo-example\">\n                        <i class=\"mdi-social-group\"></i>\n                        <h5 class=\"promo-caption\">User Experience Focused</h5>\n                        <p class=\"light center\">Easy to use, responsive and simple data visualitzation about the poll results.</p>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"center promo promo-example\">\n                        <i class=\"mdi-hardware-desktop-windows\"></i>\n                        <h5 class=\"promo-caption\">Duplicate Checking Options:</h5>\n                        <ul class=\"light center\">\n                            <li>IP Duplication Checking</li>\n                            <li>Cookie Browser Duplication Checking</li>\n                            <li>Login Duplication Checking</li>\n                        </ul>\n                    </div>\n                </div>\n            </div>\n        </div>\n    </div>\n    <!--Card Polls-->\n    <div class=\"section scrollspy\" id=\"work\">\n        <div class=\"container\">\n            <h2 class=\"header text_b\">Polls</h2>\n            <div class=\"row\">\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"card\">\n                        <div class=\"card-image waves-effect waves-block waves-light\">\n                            <a href=\"#!/results\"><img class=\"thumbnail-card\" src=\"https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360\"></a>\n                        </div>\n                        <div class=\"card-content\">\n                            <span class=\"card-title activator grey-text text-darken-4\">Poll Question </span>\n                            <p><a href=\"#!/results\">Go to poll</a></p>\n                        </div>\n                        <div class=\"card-reveal\">\n                            <span class=\"card-title grey-text text-darken-4\">Poll Question <i class=\"mdi-navigation-close right\"></i></span>\n                            <p>Here is some more information about this poll.</p>\n                        </div>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"card\">\n                        <div class=\"card-image waves-effect waves-block waves-light\">\n                            <a href=\"#!/results\"><img class=\"thumbnail-card\" src=\"https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360\"</a>\n                        </div>\n                        <div class=\"card-content\">\n                            <span class=\"card-title activator grey-text text-darken-4\">Poll Question </span>\n                            <p><a href=\"#!/results\">Go to poll</a></p>\n                        </div>\n                        <div class=\"card-reveal\">\n                            <span class=\"card-title grey-text text-darken-4\">Poll Question <i class=\"mdi-navigation-close right\"></i></span>\n                            <p>Here is some more information about this poll.</p>\n                        </div>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"card\">\n                        <div class=\"card-image waves-effect waves-block waves-light\">\n                            <a href=\"#!/results\"><img class=\"thumbnail-card\" src=\"https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360\"></a>\n                        </div>\n                        <div class=\"card-content\">\n                            <span class=\"card-title activator grey-text text-darken-4\">Poll Question </span>\n                            <p><a href=\"#!/results\">Go to poll</a></p>\n                        </div>\n                        <div class=\"card-reveal\">\n                            <span class=\"card-title grey-text text-darken-4\">Poll Question <i class=\"mdi-navigation-close right\"></i></span>\n                            <p>Here is some more information about this poll.</p>\n                        </div>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"card\">\n                        <div class=\"card-image waves-effect waves-block waves-light\">\n                            <a href=\"#!/results\"><img class=\"thumbnail-card\" src=\"https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360\"></a>\n                        </div>\n                        <div class=\"card-content\">\n                            <span class=\"card-title activator grey-text text-darken-4\">Poll Question </span>\n                            <p><a href=\"#!/results\">Go to poll</a></p>\n                        </div>\n                        <div class=\"card-reveal\">\n                            <span class=\"card-title grey-text text-darken-4\">Poll Question <i class=\"mdi-navigation-close right\"></i></span>\n                            <p>Here is some more information about this poll.</p>\n                        </div>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"card\">\n                        <div class=\"card-image waves-effect waves-block waves-light\">\n                            <a href=\"#!/results\"><img class=\"thumbnail-card\" src=\"https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360\"></a>\n                        </div>\n                        <div class=\"card-content\">\n                            <span class=\"card-title activator grey-text text-darken-4\">Poll Question </span>\n                            <p><a href=\"#!/results\">Go to poll</a></p>\n                        </div>\n                        <div class=\"card-reveal\">\n                            <span class=\"card-title grey-text text-darken-4\">Poll Question <i class=\"mdi-navigation-close right\"></i></span>\n                            <p>Here is some more information about this poll.</p>\n                        </div>\n                    </div>\n                </div>                <div class=\"col s12 m4 l4\">\n                    <div class=\"card\">\n                        <div class=\"card-image waves-effect waves-block waves-light\">\n                            <a href=\"#!/results\"><img class=\"thumbnail-card\" src=\"https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360\"></a>\n                        </div>\n                        <div class=\"card-content\">\n                            <span class=\"card-title activator grey-text text-darken-4\">Poll Question </span>\n                            <p><a href=\"#!/results\">Go to poll</a></p>\n                        </div>\n                        <div class=\"card-reveal\">\n                            <span class=\"card-title grey-text text-darken-4\">Poll Question <i class=\"mdi-navigation-close right\"></i></span>\n                            <p>Here is some more information about this poll.</p>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        </div>\n    </div>\n    <footer id=\"contact\" class=\"page-footer default_color scrollspy\">\n        <div class=\"container\">\n            <div class=\"row\">\n                <div class=\"col l3 s12\">\n                    <h5 class=\"white-text\">Social</h5>\n                    <ul>\n                        <li>\n                            <a class=\"white-text\" href=\"#\">\n                            <i class=\"small fa fa-facebook-square white-text\"></i> Facebook \n                        </a>\n                        </li>\n                        <li>\n                            <a class=\"white-text\" href=\"https://github.com/jalbertsr\">\n                            <i class=\"small fa fa-github-square white-text\"></i> Github \n                        </a>\n                        </li>\n                    </ul>\n                </div>\n            </div>\n        </div>\n        <div class=\"footer-copyright default_color\">\n            <div class=\"container\">\n                Made by <a class=\"white-text\" href=\"#\">Joan Albert Segura</a>. Done with <a class=\"white-text\" href=\"http://materializecss.com/\">materializecss</a>\n            </div>\n        </div>\n    </footer>\n</body>"
 
 function configRouteHome ($routeProvider) {
   $routeProvider
@@ -35178,15 +35783,16 @@ function configRouteHome ($routeProvider) {
 
 module.exports = configRouteHome
 
-},{}],8:[function(require,module,exports){
+},{"path":6}],11:[function(require,module,exports){
 'use strict'
 function loginController () {}
 
 module.exports = loginController
 
-},{}],9:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
+const path = require('path')
 
-var htmlLogin = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row signup\">\n    <div id=\"signup\">\n        <div class=\"container signup-screen row\">\n            <div class=\"s3 offset-s6\">\n                <div class=\"space-bot text-center\">\n                    <h1 class=\"title-color\">Login</h1>\n                    <div class=\"divider\"></div>\n                </div>\n            </div>\n            <div class=\"s6 offset-s2\">\n                <form class=\"form-register\" method=\"POST\" name=\"login\" action=\"/login/\" novalidate>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"email\" type=\"email\" name=\"email\" ng-model=\"email\" class=\"validate\" required>\n                        <label for=\"email\">Email</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-register.email.$error.email\">Your email is invalid.</p>\n                    </div>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"password\" type=\"password\" name=\"password\" ng-model=\"password\" ng-minlength='6' class=\"validate\" required>\n                        <label for=\"password\">Password</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-register.password.$error.minlength || form.password.$invalid\">Your password must be at least 6 characters.</p>\n                    </div>\n                    <div class=\"space-top text-center col s8\">\n                        <button onclick=\"Materialize.toast('Logged!', 1000)\" ng-disabled=\"form-register.$invalid\" class=\"waves-effect waves-light btn done default-color\">\n                            <i class=\"material-icons left demo-color\">done</i> Login\n                        </button>\n                    </div>\n                </form>\n            </div>\n        </div>\n    </div>\n</div>";
+const htmlLogin = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row signup\">\n    <div id=\"signup\">\n        <div class=\"container signup-screen row\">\n            <div class=\"s3 offset-s6\">\n                <div class=\"space-bot text-center\">\n                    <h1 class=\"title-color\">Login</h1>\n                    <div class=\"divider\"></div>\n                </div>\n            </div>\n            <div class=\"s6 offset-s2\">\n                <form class=\"form-register\" method=\"POST\" name=\"login\" action=\"/login/\" novalidate>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"email\" type=\"email\" name=\"email\" ng-model=\"email\" class=\"validate\" required>\n                        <label for=\"email\">Email</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-login.email.$error.email\">Your email is invalid.</p>\n                    </div>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"password\" type=\"password\" name=\"password\" ng-model=\"password\" ng-minlength='6' class=\"validate\" required>\n                        <label for=\"password\">Password</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-login.password.$error.minlength || form.password.$invalid\">Your password must be at least 6 characters.</p>\n                    </div>\n                    <div class=\"space-top text-center col s8\">\n                        <button onclick=\"Materialize.toast('Logged!', 1000)\" ng-disabled=\"form-login.$invalid\" class=\"waves-effect waves-light btn done default-color\">\n                            <i class=\"material-icons left demo-color\">done</i> Login\n                        </button>\n                    </div>\n                </form>\n            </div>\n        </div>\n    </div>\n</div>"
 
 function configLogin ($routeProvider) {
   $routeProvider
@@ -35198,7 +35804,7 @@ function configLogin ($routeProvider) {
 
 module.exports = configLogin
 
-},{}],10:[function(require,module,exports){
+},{"path":6}],13:[function(require,module,exports){
 'use strict'
 
 function privateAreaController () {
@@ -35230,9 +35836,10 @@ function privateAreaController () {
 
 module.exports = privateAreaController
 
-},{}],11:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
+const path = require('path')
 
-var htmlPrivateArea = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/\">Logout</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/\">Logout</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row create-poll\">\n    <div class=\"col l6 offset-s2 s9\">\n        <form class=\"form-register\" action=\"/privateArea/\" method=\"POST\" novalidate>\n            <p class=\"title-create-style  create-poll-title\">Create your poll</p>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"question\" ng-model=\"question\" type=\"text\" name=\"question\" class=\"validate\" required>\n                <label for=\"question\">Type your question here</label>\n            </div>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"option1\" ng-model=\"option1\" type=\"text\" name=\"option1\" required>\n                <label for=\"option1\">Option 1</label>\n            </div>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"option2\" ng-model=\"option2\" type=\"text\" name=\"option2\" required>\n                <label for=\"option2\">Option 2</label>\n            </div>\n            <div class=\"add-margin  input-field col s8\">\n                <span id=\"addOption\" class=\"info-pointer\"><i class=\"material-icons info-icon\">add</i><label class=\" info-pointer label-add\">Add another option</label></span>\n            </div>\n            <div class=\"add-margin input-field col s8\">\n                <p>Allow multiple votes selection:</p>\n                <div class=\"switch\">\n                    <label class=\"multiple-vote-space\">\n                        No\n                        <input type=\"checkbox\" name=\"allowMoreThanOne\">\n                        <span class=\"lever\"></span> Yes\n                    </label>\n                </div>\n            </div>\n            <div class=\"input-field duplicaton-top-space col s8 row\">\n                <div class=\"select-duplication col s11\">\n                    <select name=\"duplicationCheking\">\n                        <option value=\"none\" disabled selected>Choose checking option:</option>\n                        <option value=\"none\">No Duplication Checking</option>\n                        <option value=\"login\">Login Duplication Checking </option>\n                        <option value=\"cookie\">Cookie Browser Duplication Checking</option>\n                        <option value=\"ip\">IP Duplication Checking</option>\n                    </select>\n                </div>\n                <div class=\"col s1\">\n                    <span id=\"info-activate\" class=\"info-pointer\">\n                        <a><i class=\"material-icons info-icon\">info_outline</i></a>\n                    </span>\n                </div>\n            </div>\n            <div class=\"select-duplication col s8\">\n                <!-- <a href=\"#!/results\"> -->\n                    <button onclick=\"Materialize.toast('Poll created!', 1000)\" ng-disabled=\"form-register.$invalid || form-register.$pending\" class=\"btn voted btn-poll\">Create Poll\n                        <i class=\"material-icons right\">send</i>\n                    </button>\n                <!-- </a> -->\n            </div>\n        </form>\n        <!-- begin info modal -->\n        <div id=\"info-modal\" class=\"modal\">\n            <div class=\"modal-content\">\n                <h4 class=\"modal-title\">Duplication Checking Info</h4>\n                <p><strong>IP Duplication Checking</strong> - Duplicate votes will be disallowed based on the IP address of the user.</p>\n                <p><strong>Browser Cookie Duplication Checking</strong> - Duplicate votes will be disallowed based on the browser of the user, allowing multiple votes from the same IP address.</p>\n                <p><strong>No Duplication Checking</strong> - Duplication checking will be disabled and users can vote as many times as they would like.</p>\n                <p><strong>Require User Sign In to Vote</strong> - Voting is not allowed unless the voter is signed into their Suffragium account.</p>\n            </div>\n            <div class=\"modal-footer\">\n                <span><a id=\"btnClose\" class=\"modal-action btn-flat\">Ok</a></span>\n            </div>\n        </div>\n        <!-- end info modal -->\n    </div>\n    <div class=\"col l5 offset-l1 offset-s2 s9\">\n        <p class=\"title-create-style owned-polls\"> My polls </p>\n        <div class=\"personal-polls row\">\n            <a href=\"#!/results\">\n                <p class=\"question-own-poll\">What is your favourite frontend freamwork?</p>\n            </a>\n            <div class=\"switch col l8 s8\">\n                <label>\n                    Close\n                    <input type=\"checkbox\">\n                    <span class=\"lever\"></span> Open\n                </label>\n            </div>\n            <div class=\"col l4 s4\">\n                <span class=\"info-icon info-pointer\"><i class=\"material-icons\">delete</i></span>\n            </div>\n        </div>\n        <div class=\"personal-polls row\">\n            <a href=\"#!/results\">\n                <p class=\"question-own-poll\">Another queston ?</p>\n            </a>\n            <div class=\"switch col l8 s8\">\n                <label>\n                    Close\n                    <input type=\"checkbox\">\n                    <span class=\"lever\"></span> Open\n                </label>\n            </div>\n            <div class=\"col l4 s4\">\n                <span class=\"info-icon info-pointer\"><i class=\"material-icons\">delete</i></span>\n            </div>\n        </div>\n        <div class=\"personal-polls row\">\n            <a href=\"#!/results\">\n                <p class=\"question-own-poll\">Bla blaaaa blaaaa blaaa?</p>\n            </a>\n            <div class=\"switch col l8 s8\">\n                <label>\n                    Close\n                    <input type=\"checkbox\">\n                    <span class=\"lever\"></span> Open\n                </label>\n            </div>\n            <div class=\"col l4 s4\">\n                <span class=\"info-icon info-pointer\"><i class=\"material-icons\">delete</i></span>\n            </div>\n        </div>\n    </div>\n</div>";
+const htmlPrivateArea = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/\">Logout</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/\">Logout</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row create-poll\">\n    <div class=\"col l6 offset-s2 s9\">\n        <form class=\"form-register\" name=\"poll\" action=\"/privateArea/\" method=\"POST\" novalidate>\n            <p class=\"title-create-style  create-poll-title\">Create your poll</p>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"question\" ng-model=\"question\" type=\"text\" name=\"question\" class=\"validate\" required>\n                <label for=\"question\">Type your question here</label>\n            </div>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"option1\" ng-model=\"option1\" type=\"text\" name=\"option1\" required>\n                <label for=\"option1\">Option 1</label>\n            </div>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"option2\" ng-model=\"option2\" type=\"text\" name=\"option2\" required>\n                <label for=\"option2\">Option 2</label>\n            </div>\n            <div class=\"add-margin  input-field col s8\">\n                <span id=\"addOption\" class=\"info-pointer\"><i class=\"material-icons info-icon\">add</i><label class=\" info-pointer label-add\">Add another option</label></span>\n            </div>\n            <div class=\"add-margin input-field col s8\">\n                <p>Allow multiple votes selection:</p>\n                <div class=\"switch\">\n                    <label class=\"multiple-vote-space\">\n                        No\n                        <input type=\"checkbox\" name=\"allowMoreThanOne\">\n                        <span class=\"lever\"></span> Yes\n                    </label>\n                </div>\n            </div>\n            <div class=\"input-field duplicaton-top-space col s8 row\">\n                <div class=\"select-duplication col s11\">\n                    <select name=\"duplicationCheking\">\n                        <option value=\"none\" disabled selected>Choose checking option:</option>\n                        <option value=\"none\">No Duplication Checking</option>\n                        <option value=\"login\">Login Duplication Checking </option>\n                        <option value=\"cookie\">Cookie Browser Duplication Checking</option>\n                        <option value=\"ip\">IP Duplication Checking</option>\n                    </select>\n                </div>\n                <div class=\"col s1\">\n                    <span id=\"info-activate\" class=\"info-pointer\">\n                        <a><i class=\"material-icons info-icon\">info_outline</i></a>\n                    </span>\n                </div>\n            </div>\n            <div class=\"select-duplication col s8\">\n                <button onclick=\"Materialize.toast('Poll created!', 1000)\" ng-disabled=\"form-poll.$invalid || form-register.$pending\" class=\"btn voted btn-poll\">Create Poll\n                    <i class=\"material-icons right\">send</i>\n                </button>\n            </div>\n        </form>\n        <!-- begin info modal -->\n        <div id=\"info-modal\" class=\"modal\">\n            <div class=\"modal-content\">\n                <h4 class=\"modal-title\">Duplication Checking Info</h4>\n                <p><strong>IP Duplication Checking</strong> - Duplicate votes will be disallowed based on the IP address of the user.</p>\n                <p><strong>Browser Cookie Duplication Checking</strong> - Duplicate votes will be disallowed based on the browser of the user, allowing multiple votes from the same IP address.</p>\n                <p><strong>No Duplication Checking</strong> - Duplication checking will be disabled and users can vote as many times as they would like.</p>\n                <p><strong>Require User Sign In to Vote</strong> - Voting is not allowed unless the voter is signed into their Suffragium account.</p>\n            </div>\n            <div class=\"modal-footer\">\n                <span><a id=\"btnClose\" class=\"modal-action btn-flat\">Ok</a></span>\n            </div>\n        </div>\n        <!-- end info modal -->\n    </div>\n    <div class=\"col l5 offset-l1 offset-s2 s9\">\n        <p class=\"title-create-style owned-polls\"> My polls </p>\n        <div class=\"personal-polls row\">\n            <a href=\"#!/results\">\n                <p class=\"question-own-poll\">What is your favourite frontend freamwork?</p>\n            </a>\n            <div class=\"switch col l8 s8\">\n                <label>\n                    Close\n                    <input type=\"checkbox\">\n                    <span class=\"lever\"></span> Open\n                </label>\n            </div>\n            <div class=\"col l4 s4\">\n                <span class=\"info-icon info-pointer\"><i class=\"material-icons\">delete</i></span>\n            </div>\n        </div>\n        <div class=\"personal-polls row\">\n            <a href=\"#!/results\">\n                <p class=\"question-own-poll\">Another queston ?</p>\n            </a>\n            <div class=\"switch col l8 s8\">\n                <label>\n                    Close\n                    <input type=\"checkbox\">\n                    <span class=\"lever\"></span> Open\n                </label>\n            </div>\n            <div class=\"col l4 s4\">\n                <span class=\"info-icon info-pointer\"><i class=\"material-icons\">delete</i></span>\n            </div>\n        </div>\n        <div class=\"personal-polls row\">\n            <a href=\"#!/results\">\n                <p class=\"question-own-poll\">Bla blaaaa blaaaa blaaa?</p>\n            </a>\n            <div class=\"switch col l8 s8\">\n                <label>\n                    Close\n                    <input type=\"checkbox\">\n                    <span class=\"lever\"></span> Open\n                </label>\n            </div>\n            <div class=\"col l4 s4\">\n                <span class=\"info-icon info-pointer\"><i class=\"material-icons\">delete</i></span>\n            </div>\n        </div>\n    </div>\n</div>"
 
 function privateAreaConfig ($routeProvider) {
   $routeProvider
@@ -35244,15 +35851,16 @@ function privateAreaConfig ($routeProvider) {
 
 module.exports = privateAreaConfig
 
-},{}],12:[function(require,module,exports){
+},{"path":6}],15:[function(require,module,exports){
 'use strict'
 function registerController () {}
 
 module.exports = registerController
 
-},{}],13:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
+const path = require('path')
 
-var htmlRegister = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row signup\">\n    <div id=\"signup\">\n        <div class=\"container signup-screen row\">\n            <div class=\"s3 offset-s6\">\n                <div class=\"space-bot text-center\">\n                    <h1 class=\"title-color\">Register</h1>\n                    <div class=\"divider\"></div>\n                </div>\n            </div>\n            <div class=\"s6 offset-s2\">\n                <form class=\"form-register\" method=\"POST\" name=\"register\" action=\"/register/\" novalidate>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"email\" type=\"email\" name=\"email\" ng-model=\"email\" class=\"validate\" required>\n                        <label for=\"email\">Email</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-register.email.$error.email\">Your email is invalid.</p>\n                    </div>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"password\" type=\"password\" name=\"password\" ng-model=\"password\" ng-minlength='6' class=\"validate\" required>\n                        <label for=\"password\">Password</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-register.password.$error.minlength || form.password.$invalid\">Your password must be at least 6 characters.</p>\n                    </div>\n                    <div class=\"space-top text-center col s8\">\n                        <button onclick=\"Materialize.toast('Registered!', 1000)\" ng-disabled=\"form-register.$invalid\" class=\"waves-effect waves-light btn done default-color\">\n                            <i class=\"material-icons left demo-color\">done</i> Register\n                        </button>\n                    </div>\n                </form>\n            </div>\n        </div>\n    </div>\n</div>";
+const htmlRegister = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row signup\">\n    <div id=\"signup\">\n        <div class=\"container signup-screen row\">\n            <div class=\"s3 offset-s6\">\n                <div class=\"space-bot text-center\">\n                    <h1 class=\"title-color\">Register</h1>\n                    <div class=\"divider\"></div>\n                </div>\n            </div>\n            <div class=\"s6 offset-s2\">\n                <form class=\"form-register\" method=\"POST\" name=\"register\" action=\"/register/\" novalidate>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"email\" type=\"email\" name=\"email\" ng-model=\"email\" class=\"validate\" required>\n                        <label for=\"email\">Email</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-register.email.$error.email\">Your email is invalid.</p>\n                    </div>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"password\" type=\"password\" name=\"password\" ng-model=\"password\" ng-minlength='6' class=\"validate\" required>\n                        <label for=\"password\">Password</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-register.password.$error.minlength || form.password.$invalid\">Your password must be at least 6 characters.</p>\n                    </div>\n                    <div class=\"space-top text-center col s8\">\n                        <button onclick=\"Materialize.toast('Registered!', 1000)\" ng-disabled=\"form-register.$invalid\" class=\"waves-effect waves-light btn done default-color\">\n                            <i class=\"material-icons left demo-color\">done</i> Register\n                        </button>\n                    </div>\n                </form>\n            </div>\n        </div>\n    </div>\n</div>"
 
 function registerConfig ($routeProvider) {
   $routeProvider
@@ -35264,12 +35872,11 @@ function registerConfig ($routeProvider) {
 
 module.exports = registerConfig
 
-},{}],14:[function(require,module,exports){
-/* global Chart saveAs */
+},{"path":6}],17:[function(require,module,exports){
+/* global Chart */
 'use strict'
 
-const toBlob = require('../../../libs/canvas-toBlob.js')
-const FileSaver = require('../../../libs/FileSaver.min.js')
+const FileSaver = require('file-saver')
 
 function resultsController ($scope, $rootScope) {
   let myChart
@@ -35278,7 +35885,7 @@ function resultsController ($scope, $rootScope) {
   $scope.saveChart = function () {
     document.getElementById('myChart').toBlob(function (blob) {
       saveCount++
-      saveAs(blob, `chart_${saveCount}.png`)
+      FileSaver.saveAs(blob, `chart_${saveCount}.png`)
     })
   }
 
@@ -35417,9 +36024,10 @@ function resultsController ($scope, $rootScope) {
 
 module.exports = resultsController
 
-},{"../../../libs/FileSaver.min.js":16,"../../../libs/canvas-toBlob.js":17}],15:[function(require,module,exports){
+},{"file-saver":5}],18:[function(require,module,exports){
+const path = require('path')
 
-var htmlResults = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container-results\">\n    <div class=\"row\">\n        <div class=\"row col s11 l4 offset-l1 container-question\">\n            <form>\n                <p class=\"title-results-style title-size\">Question will display here bla bla ?</p>\n                <!-- begin option -->\n                <div class=\"container space\">\n                    <input type=\"checkbox\" id=\"option1\">\n                    <label for=\"option1\">option1</label>\n                </div>\n                <div class=\"container space\">\n                    <input type=\"checkbox\" id=\"option2\" checked>\n                    <label for=\"option2\">option2</label>\n                </div>\n                <div class=\"container space\">\n                    <input type=\"checkbox\" id=\"option3\">\n                    <label for=\"option3\">option3</label>\n                </div>\n                <div class=\"container space\">\n                    <input type=\"checkbox\" id=\"option4\">\n                    <label for=\"option4\">option4</label>\n                </div>\n                <!-- end option -->\n                <button class=\"btn voted\" type=\"submit\" name=\"action\" onclick=\"Materialize.toast('Voted!', 1000)\">Vote\n                    <i class=\"material-icons right\">send</i>\n                </button>\n            </form>\n            <div class=\"title-results-style\">\n                <p class=\"info-results\">Total Votes: {{30+45}}</p>\n                <p>Status: Closed</p>\n            </div>\n        </div>\n        <div class=\"col s11 l6 row container-graph\">\n            <canvas class=\"canvas-graph-style\" height=\"120\" width=\"230\" id=\"myChart\"></canvas>\n            <div class=\"input-field col s6\">\n                <select ng-change=\"changeChart(chartType)\" ng-model=\"chartType\">\n                  <option value=\"\" disabled>Choose Chart</option>\n                  <option value=\"bar\">Bar Chart</option>\n                  <option value=\"horizontalBar\">Horitzontal Bar Chart</option>\n                  <option value=\"line\">Line Chart</option>\n                  <option value=\"doughnut\">Doughnut Chart</option>\n                  <option value=\"pie\">Pie Chart</option>\n                </select>\n            </div>\n            <div class=\"col offset-s3 s3 save-button\">\n                <button class=\"btn voted\" ng-click=\"saveChart()\" name=\"action\" onclick=\"Materialize.toast('Saved!', 1000)\">Save\n                    <i class=\"material-icons right\">file_download</i>\n                </button>\n            </div>\n        </div>\n    </div>\n</div>";
+const htmlResults = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container-results\">\n    <div class=\"row\">\n        <div class=\"row col s11 l4 offset-l1 container-question\">\n            <form>\n                <p class=\"title-results-style title-size\">Question will display here bla bla ?</p>\n                <!-- begin option -->\n                <div class=\"container space\">\n                    <input type=\"checkbox\" id=\"option1\">\n                    <label for=\"option1\">option1</label>\n                </div>\n                <div class=\"container space\">\n                    <input type=\"checkbox\" id=\"option2\" checked>\n                    <label for=\"option2\">option2</label>\n                </div>\n                <div class=\"container space\">\n                    <input type=\"checkbox\" id=\"option3\">\n                    <label for=\"option3\">option3</label>\n                </div>\n                <div class=\"container space\">\n                    <input type=\"checkbox\" id=\"option4\">\n                    <label for=\"option4\">option4</label>\n                </div>\n                <!-- end option -->\n                <button class=\"btn voted\" type=\"submit\" name=\"action\" onclick=\"Materialize.toast('Voted!', 1000)\">Vote\n                    <i class=\"material-icons right\">send</i>\n                </button>\n            </form>\n            <div class=\"title-results-style\">\n                <p class=\"info-results\">Total Votes: {{30+45}}</p>\n                <p>Status: Closed</p>\n            </div>\n        </div>\n        <div class=\"col s11 l6 row container-graph\">\n            <canvas class=\"canvas-graph-style\" height=\"120\" width=\"230\" id=\"myChart\"></canvas>\n            <div class=\"input-field col s6\">\n                <select ng-change=\"changeChart(chartType)\" ng-model=\"chartType\">\n                  <option value=\"\" disabled>Choose Chart</option>\n                  <option value=\"bar\">Bar Chart</option>\n                  <option value=\"horizontalBar\">Horitzontal Bar Chart</option>\n                  <option value=\"line\">Line Chart</option>\n                  <option value=\"doughnut\">Doughnut Chart</option>\n                  <option value=\"pie\">Pie Chart</option>\n                </select>\n            </div>\n            <div class=\"col offset-s3 s3 save-button\">\n                <button class=\"btn voted\" ng-click=\"saveChart()\" name=\"action\" onclick=\"Materialize.toast('Saved!', 1000)\">Save\n                    <i class=\"material-icons right\">file_download</i>\n                </button>\n            </div>\n        </div>\n    </div>\n</div>"
 
 function resultsConfig ($routeProvider) {
   $routeProvider
@@ -35431,135 +36039,4 @@ function resultsConfig ($routeProvider) {
 
 module.exports = resultsConfig
 
-},{}],16:[function(require,module,exports){
-/*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */
-var saveAs=saveAs||function(e){"use strict";if(typeof e==="undefined"||typeof navigator!=="undefined"&&/MSIE [1-9]\./.test(navigator.userAgent)){return}var t=e.document,n=function(){return e.URL||e.webkitURL||e},r=t.createElementNS("http://www.w3.org/1999/xhtml","a"),o="download"in r,a=function(e){var t=new MouseEvent("click");e.dispatchEvent(t)},i=/constructor/i.test(e.HTMLElement)||e.safari,f=/CriOS\/[\d]+/.test(navigator.userAgent),u=function(t){(e.setImmediate||e.setTimeout)(function(){throw t},0)},s="application/octet-stream",d=1e3*40,c=function(e){var t=function(){if(typeof e==="string"){n().revokeObjectURL(e)}else{e.remove()}};setTimeout(t,d)},l=function(e,t,n){t=[].concat(t);var r=t.length;while(r--){var o=e["on"+t[r]];if(typeof o==="function"){try{o.call(e,n||e)}catch(a){u(a)}}}},p=function(e){if(/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(e.type)){return new Blob([String.fromCharCode(65279),e],{type:e.type})}return e},v=function(t,u,d){if(!d){t=p(t)}var v=this,w=t.type,m=w===s,y,h=function(){l(v,"writestart progress write writeend".split(" "))},S=function(){if((f||m&&i)&&e.FileReader){var r=new FileReader;r.onloadend=function(){var t=f?r.result:r.result.replace(/^data:[^;]*;/,"data:attachment/file;");var n=e.open(t,"_blank");if(!n)e.location.href=t;t=undefined;v.readyState=v.DONE;h()};r.readAsDataURL(t);v.readyState=v.INIT;return}if(!y){y=n().createObjectURL(t)}if(m){e.location.href=y}else{var o=e.open(y,"_blank");if(!o){e.location.href=y}}v.readyState=v.DONE;h();c(y)};v.readyState=v.INIT;if(o){y=n().createObjectURL(t);setTimeout(function(){r.href=y;r.download=u;a(r);h();c(y);v.readyState=v.DONE});return}S()},w=v.prototype,m=function(e,t,n){return new v(e,t||e.name||"download",n)};if(typeof navigator!=="undefined"&&navigator.msSaveOrOpenBlob){return function(e,t,n){t=t||e.name||"download";if(!n){e=p(e)}return navigator.msSaveOrOpenBlob(e,t)}}w.abort=function(){};w.readyState=w.INIT=0;w.WRITING=1;w.DONE=2;w.error=w.onwritestart=w.onprogress=w.onwrite=w.onabort=w.onerror=w.onwriteend=null;return m}(typeof self!=="undefined"&&self||typeof window!=="undefined"&&window||this.content);if(typeof module!=="undefined"&&module.exports){module.exports.saveAs=saveAs}else if(typeof define!=="undefined"&&define!==null&&define.amd!==null){define("FileSaver.js",function(){return saveAs})}
-
-},{}],17:[function(require,module,exports){
-/* canvas-toBlob.js
- * A canvas.toBlob() implementation.
- * 2016-05-26
- * 
- * By Eli Grey, http://eligrey.com and Devin Samarin, https://github.com/eboyjr
- * License: MIT
- *   See https://github.com/eligrey/canvas-toBlob.js/blob/master/LICENSE.md
- */
-
-/*global self */
-/*jslint bitwise: true, regexp: true, confusion: true, es5: true, vars: true, white: true,
-  plusplus: true */
-
-/*! @source http://purl.eligrey.com/github/canvas-toBlob.js/blob/master/canvas-toBlob.js */
-
-(function(view) {
-"use strict";
-var
-	  Uint8Array = view.Uint8Array
-	, HTMLCanvasElement = view.HTMLCanvasElement
-	, canvas_proto = HTMLCanvasElement && HTMLCanvasElement.prototype
-	, is_base64_regex = /\s*;\s*base64\s*(?:;|$)/i
-	, to_data_url = "toDataURL"
-	, base64_ranks
-	, decode_base64 = function(base64) {
-		var
-			  len = base64.length
-			, buffer = new Uint8Array(len / 4 * 3 | 0)
-			, i = 0
-			, outptr = 0
-			, last = [0, 0]
-			, state = 0
-			, save = 0
-			, rank
-			, code
-			, undef
-		;
-		while (len--) {
-			code = base64.charCodeAt(i++);
-			rank = base64_ranks[code-43];
-			if (rank !== 255 && rank !== undef) {
-				last[1] = last[0];
-				last[0] = code;
-				save = (save << 6) | rank;
-				state++;
-				if (state === 4) {
-					buffer[outptr++] = save >>> 16;
-					if (last[1] !== 61 /* padding character */) {
-						buffer[outptr++] = save >>> 8;
-					}
-					if (last[0] !== 61 /* padding character */) {
-						buffer[outptr++] = save;
-					}
-					state = 0;
-				}
-			}
-		}
-		// 2/3 chance there's going to be some null bytes at the end, but that
-		// doesn't really matter with most image formats.
-		// If it somehow matters for you, truncate the buffer up outptr.
-		return buffer;
-	}
-;
-if (Uint8Array) {
-	base64_ranks = new Uint8Array([
-		  62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1
-		, -1, -1,  0, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9
-		, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25
-		, -1, -1, -1, -1, -1, -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
-		, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51
-	]);
-}
-if (HTMLCanvasElement && (!canvas_proto.toBlob || !canvas_proto.toBlobHD)) {
-	if (!canvas_proto.toBlob)
-	canvas_proto.toBlob = function(callback, type /*, ...args*/) {
-		  if (!type) {
-			type = "image/png";
-		} if (this.mozGetAsFile) {
-			callback(this.mozGetAsFile("canvas", type));
-			return;
-		} if (this.msToBlob && /^\s*image\/png\s*(?:$|;)/i.test(type)) {
-			callback(this.msToBlob());
-			return;
-		}
-
-		var
-			  args = Array.prototype.slice.call(arguments, 1)
-			, dataURI = this[to_data_url].apply(this, args)
-			, header_end = dataURI.indexOf(",")
-			, data = dataURI.substring(header_end + 1)
-			, is_base64 = is_base64_regex.test(dataURI.substring(0, header_end))
-			, blob
-		;
-		if (Blob.fake) {
-			// no reason to decode a data: URI that's just going to become a data URI again
-			blob = new Blob
-			if (is_base64) {
-				blob.encoding = "base64";
-			} else {
-				blob.encoding = "URI";
-			}
-			blob.data = data;
-			blob.size = data.length;
-		} else if (Uint8Array) {
-			if (is_base64) {
-				blob = new Blob([decode_base64(data)], {type: type});
-			} else {
-				blob = new Blob([decodeURIComponent(data)], {type: type});
-			}
-		}
-		callback(blob);
-	};
-
-	if (!canvas_proto.toBlobHD && canvas_proto.toDataURLHD) {
-		canvas_proto.toBlobHD = function() {
-			to_data_url = "toDataURLHD";
-			var blob = this.toBlob();
-			to_data_url = "toDataURL";
-			return blob;
-		}
-	} else {
-		canvas_proto.toBlobHD = canvas_proto.toBlob;
-	}
-}
-}(typeof self !== "undefined" && self || typeof window !== "undefined" && window || this.content || this));
-
-},{}]},{},[5]);
+},{"path":6}]},{},[8]);

@@ -1,5 +1,6 @@
-var fs = require('fs')
-var htmlRegister = fs.readFileSync(__dirname + '/template.html', 'utf8');
+const path = require('path')
+const fs = require('fs')
+const htmlRegister = fs.readFileSync(path.join(__dirname, '/template.html'), 'utf-8')
 
 function registerConfig ($routeProvider) {
   $routeProvider

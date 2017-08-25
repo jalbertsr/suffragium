@@ -1,5 +1,6 @@
-var fs = require('fs')
-var htmlPrivateArea = fs.readFileSync(__dirname + '/template.html', 'utf8');
+const path = require('path')
+const fs = require('fs')
+const htmlPrivateArea = fs.readFileSync(path.join(__dirname, '/template.html'), 'utf-8')
 
 function privateAreaConfig ($routeProvider) {
   $routeProvider

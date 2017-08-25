@@ -5,9 +5,10 @@
   "main": "app.js",
   "scripts": {
     "prestart": "npm install bower install",
-    "start": "node Server/app.js",
-    "dev": "nodemon Server/app.js",
-    "dev:debug": "DEBUG=*,-nodemon*,-send* npm run dev",
+    "start": "node server/app.js",
+    "dev": "nodemon server/app.js",
+    "dev:debug": "DEBUG=*,-nodemon*,-send*, npm run dev",
+    "dev:debug:socket": "DEBUG=socket.io* npm run dev",
     "build:scss": "node-sass client/scss/styles.scss  client/css/styles.css",
     "build:scss:watch": "node-sass client/scss/styles.scss  client/css/styles.css --watch",
     "build:js": "browserify -t brfs src/app/main.js -o client/bundle.js",
@@ -22,7 +23,9 @@
   "dependencies": {
     "body-parser": "^1.17.2",
     "express": "^4.15.4",
-    "mongoose": "^4.11.7"
+    "file-saver": "^1.3.3",
+    "mongoose": "^4.11.7",
+    "socket.io": "^2.0.3"
   },
   "devDependencies": {
     "angular": "^1.6.6",

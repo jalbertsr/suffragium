@@ -1,8 +1,7 @@
-/* global Chart saveAs */
+/* global Chart */
 'use strict'
 
-const toBlob = require('../../../libs/canvas-toBlob.js')
-const FileSaver = require('../../../libs/FileSaver.min.js')
+const FileSaver = require('file-saver')
 
 function resultsController ($scope, $rootScope) {
   let myChart
@@ -11,7 +10,7 @@ function resultsController ($scope, $rootScope) {
   $scope.saveChart = function () {
     document.getElementById('myChart').toBlob(function (blob) {
       saveCount++
-      saveAs(blob, `chart_${saveCount}.png`)
+      FileSaver.saveAs(blob, `chart_${saveCount}.png`)
     })
   }
 

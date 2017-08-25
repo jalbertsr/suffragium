@@ -16,7 +16,7 @@
 </div>
 <div class="container row create-poll">
     <div class="col l6 offset-s2 s9">
-        <form class="form-register" action="/privateArea/" method="POST" novalidate>
+        <form class="form-register" name="poll" action="/privateArea/" method="POST" novalidate>
             <p class="title-create-style  create-poll-title">Create your poll</p>
             <div class="input-field col s8">
                 <input class="input-border-color" id="question" ng-model="question" type="text" name="question" class="validate" required>
@@ -60,11 +60,9 @@
                 </div>
             </div>
             <div class="select-duplication col s8">
-                <!-- <a href="#!/results"> -->
-                    <button onclick="Materialize.toast('Poll created!', 1000)" ng-disabled="form-register.$invalid || form-register.$pending" class="btn voted btn-poll">Create Poll
-                        <i class="material-icons right">send</i>
-                    </button>
-                <!-- </a> -->
+                <button onclick="Materialize.toast('Poll created!', 1000)" ng-disabled="form-poll.$invalid || form-register.$pending" class="btn voted btn-poll">Create Poll
+                    <i class="material-icons right">send</i>
+                </button>
             </div>
         </form>
         <!-- begin info modal -->
