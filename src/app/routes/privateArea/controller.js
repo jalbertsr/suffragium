@@ -1,6 +1,6 @@
 'use strict'
 
-function privateAreaController () {
+function privateAreaController ($scope) {
   const modal = document.getElementById('info-modal')
   const btn = document.getElementById('info-activate')
   const btnClose = document.getElementById('btnClose')
@@ -24,6 +24,10 @@ function privateAreaController () {
     const element = document.getElementsByClassName('input-field')[optionNumber - 1]
     element.insertAdjacentHTML('afterend', optionInput)
     optionNumber++
+  }
+
+  $scope.deletePoll = function ($event) {
+    $event.currentTarget.parentNode.remove()
   }
 }
 
