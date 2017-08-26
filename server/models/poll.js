@@ -6,7 +6,15 @@ const PollSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  options: [ String ],
+  options: [{
+    option: {
+      type: String
+    },
+    votes: {
+      type: Number,
+      default: 4
+    }
+  }],
   config: {
     duplicationChecking: {
       type: String,
@@ -22,7 +30,7 @@ const PollSchema = new mongoose.Schema({
       type: Boolean,
       default: true
     },
-    votes: {
+    totalVotes: {
       type: Number,
       default: 0
     }

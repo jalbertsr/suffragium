@@ -5,7 +5,15 @@ const getData = ($http) => {
     const url = `/api/infoPoll/${id}`
     return $http.get(url)
   }
-  return { getInfoPoll }
+
+  const vote = (idPoll, idsVote) => {
+    const url = `/api/poll/${idPoll}/vote/${idsVote}`
+    return $http.put(url)
+  }
+  return {
+    getInfoPoll,
+    vote
+  }
 }
 
 module.exports = getData

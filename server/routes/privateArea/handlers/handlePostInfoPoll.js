@@ -18,7 +18,7 @@ const handlePostInfoPoll = (req, res) => {
 
   for (let key in req.body) {
     if (/option/.test(key)) {
-      options.push(req.body[key])
+      options.push({option: req.body[key]})
     }
   }
 

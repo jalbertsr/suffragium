@@ -35880,7 +35880,7 @@ function registerConfig ($routeProvider) {
 module.exports = registerConfig
 
 },{"path":6}],17:[function(require,module,exports){
-/* global Chart */
+/* global Chart, angular */
 'use strict'
 
 const FileSaver = require('file-saver')
@@ -35889,28 +35889,73 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
   const { id } = $routeParams
   let myChart
   let saveCount = 0
+  let dataOptions
+  let chartOptions
+  let chartVotes
 
-  $scope.saveChart = function () {
-    document.getElementById('myChart').toBlob(function (blob) {
+  /* ------------ START API CALLS ------------ */
+
+  dataService.getInfoPoll(id)
+    .then((response) => {
+      $scope.question = response.data.question
+      $scope.status = response.data.pollInfo.status
+      $scope.totalVotes = response.data.pollInfo.totalVotes
+      $scope.options = response.data.options
+
+      dataOptions = response.data.options
+
+      chartOptions = dataOptions.map((obj) => {
+        return obj.option
+      })
+
+      chartVotes = dataOptions.map((obj) => {
+        return obj.votes
+      })
+
+      console.log(response)
+    })
+    .catch(console.log)
+
+  /* ------------ ON CLICK ACTIONS -------- */
+
+  $scope.saveChart = () => {
+    document.getElementById('myChart').toBlob((blob) => {
       saveCount++
       FileSaver.saveAs(blob, `chart_${saveCount}.png`)
     })
   }
 
-  $scope.changeChart = function (chartType) {
+  $scope.vote = (listOptions) => {
+    const optionsVoted = []
+    angular.forEach(listOptions, (value, key) => {
+      if (listOptions[key].selected === listOptions[key]._id) {
+        optionsVoted.push(listOptions[key].selected)
+      }
+    })
+    console.log(optionsVoted)
+    const idsVote = optionsVoted.join('_')
+    console.log(idsVote)
+
+    dataService.vote(id, idsVote)
+      .then(console.log)
+      .catch(console.log)
+  }
+
+  /* ------------ ON CHANGE ACTIONS -------- */
+
+  $scope.changeChart = (chartType) => {
     const ctx = document.getElementById('myChart')
     myChart.destroy()
-    console.log(chartType)
 
     switch (chartType) {
       case 'line':
       case 'horizontalBar':
       case 'bar':
         let data = {
-          labels: ['Blue', 'Red', 'Yellow', 'Green', 'Purple', 'Orange'],
+          labels: chartOptions,
           datasets: [{
-            label: '# of Votes',
-            data: [12, 19, 3, 5, 2, 3],
+            label: chartOptions, // mirar flata algo
+            data: chartVotes,
             backgroundColor: [
               'rgba(54, 162, 235, 0.2)',
               'rgba(255, 99, 132, 0.2)',
@@ -35921,7 +35966,7 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
             ],
             borderColor: [
               'rgba(54, 162, 235, 1)',
-              'rgba(255,99,132,1)',
+              'rgba(255,99,132, 1)',
               'rgba(255, 206, 86, 1)',
               'rgba(75, 192, 192, 1)',
               'rgba(153, 102, 255, 1)',
@@ -35951,24 +35996,25 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
       case 'pie':
         let pieData = {
           datasets: [{
-            data: [10, 20, 30],
+            data: chartVotes,
             backgroundColor: [
               'rgba(54, 162, 235, 0.3)',
               'rgba(255, 99, 132, 0.3)',
-              'rgba(255, 206, 86, 0.3)'
+              'rgba(255, 206, 86, 0.3)',
+              'rgba(75, 192, 192, 0.3)',
+              'rgba(153, 102, 255, 0.3)',
+              'rgba(255, 159, 64, 0.3)'
             ],
             borderColor: [
               'rgba(54, 162, 235, 1)',
               'rgba(255,99,132,1)',
-              'rgba(255, 206, 86, 1)'
+              'rgba(255, 206, 86, 1)',
+              'rgba(75, 192, 192, 1)',
+              'rgba(153, 102, 255, 1)',
+              'rgba(255, 159, 64, 1)'
             ]
           }],
-        // These labels appear in the legend and in the tooltips when hovering different arcs
-          labels: [
-            'Blue',
-            'Red',
-            'Yellow'
-          ]
+          labels: chartOptions
         }
 
         myChart = new Chart(ctx, {
@@ -35983,7 +36029,7 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
   }
 
   /* --------------- Default BAR CHART ---------------- */
-  var initialGraph = setTimeout(function () {
+  var initialGraph = setTimeout(() => {
     const ctx = document.getElementById('myChart')
 
     let data = {
@@ -36028,18 +36074,6 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
     })
     clearTimeout(initialGraph)
   }, 200)
-
-  /* ------------ API CALLS ------------ */
-
-  dataService.getInfoPoll(id)
-    .then((response) => {
-      $scope.question = response.data.question
-      $scope.options = response.data.options
-      $scope.status = response.data.pollInfo.status
-      $scope.votes = response.data.pollInfo.votes
-      console.log(response)
-    })
-    .catch(console.log)
 }
 
 module.exports = resultsController
@@ -36047,7 +36081,7 @@ module.exports = resultsController
 },{"file-saver":5}],18:[function(require,module,exports){
 const path = require('path')
 
-const htmlResults = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container-results\">\n    <div class=\"row\">\n        <div class=\"row col s11 l4 offset-l1 container-question\">\n            <form>\n                <p class=\"title-results-style title-size\">{{question}}\n                <!-- begin option -->\n                <div class=\"container space\" ng-repeat=\"option in options\">\n                    <input type=\"checkbox\" id=\"option{{$index}}\">\n                    <label for=\"option{{$index}}\">{{option}}</label>\n                </div>\n                <!-- end option -->\n                <button class=\"btn voted\" type=\"submit\" name=\"action\" onclick=\"Materialize.toast('Voted!', 1000)\" ng-disabled=\"{{status}}\">Vote\n                    <i class=\"material-icons right\">send</i>\n                </button>\n            </form>\n            <div class=\"title-results-style\">\n                <p class=\"info-results\">Total Votes: {{votes}}</p>\n                <p>Status: {{status ? 'Open' : 'Closed'}}</p>\n            </div>\n        </div>\n        <div class=\"col s11 l6 row container-graph\">\n            <canvas class=\"canvas-graph-style\" height=\"120\" width=\"230\" id=\"myChart\"></canvas>\n            <div class=\"input-field col s6\">\n                <select ng-change=\"changeChart(chartType)\" ng-model=\"chartType\">\n                  <option value=\"\" disabled>Choose Chart</option>\n                  <option value=\"bar\">Bar Chart</option>\n                  <option value=\"horizontalBar\">Horitzontal Bar Chart</option>\n                  <option value=\"line\">Line Chart</option>\n                  <option value=\"doughnut\">Doughnut Chart</option>\n                  <option value=\"pie\">Pie Chart</option>\n                </select>\n            </div>\n            <div class=\"col offset-s3 s3 save-button\">\n                <button class=\"btn voted\" ng-click=\"saveChart()\" name=\"action\" onclick=\"Materialize.toast('Saved!', 1000)\">Save\n                    <i class=\"material-icons right\">file_download</i>\n                </button>\n            </div>\n        </div>\n    </div>\n</div>"
+const htmlResults = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container-results\">\n    <div class=\"row\">\n        <div class=\"row col s11 l4 offset-l1 container-question\">\n            <p class=\"title-results-style title-size\">{{question}}\n            <!-- begin option -->\n            <div class=\"container space\" ng-repeat=\"option in options\" id=\"{{option._id}}\">\n                <input type=\"checkbox\" id=\"option{{$index}}\" ng-model=\"option.selected\" ng-true-value=\"'{{option._id}}'\" ng-false-value=\"false\">\n                <label for=\"option{{$index}}\">{{option.option}}</label>\n            </div>\n            <!-- end option -->\n            <button class=\"btn voted\" type=\"submit\" name=\"action\" onclick=\"Materialize.toast('Voted!', 1000)\" ng-disabled=\"{{status}}\" ng-click=\"vote(options)\">Vote\n                <i class=\"material-icons right\">send</i>\n            </button>\n            <div class=\"title-results-style\">\n                <p class=\"info-results\">Total Votes: {{totalVotes}}</p>\n                <p>Status: {{status ? 'Open' : 'Closed'}}</p>\n            </div>\n        </div>\n        <div class=\"col s11 l6 row container-graph\">\n            <canvas class=\"canvas-graph-style\" height=\"120\" width=\"230\" id=\"myChart\"></canvas>\n            <div class=\"input-field col s6\">\n                <select ng-change=\"changeChart(chartType)\" ng-model=\"chartType\">\n                  <option value=\"\" disabled>Choose Chart</option>\n                  <option value=\"bar\">Bar Chart</option>\n                  <option value=\"horizontalBar\">Horitzontal Bar Chart</option>\n                  <option value=\"line\">Line Chart</option>\n                  <option value=\"doughnut\">Doughnut Chart</option>\n                  <option value=\"pie\">Pie Chart</option>\n                </select>\n            </div>\n            <div class=\"col offset-s3 s3 save-button\">\n                <button class=\"btn voted\" ng-click=\"saveChart()\" name=\"action\" onclick=\"Materialize.toast('Saved!', 1000)\">Save\n                    <i class=\"material-icons right\">file_download</i>\n                </button>\n            </div>\n        </div>\n    </div>\n</div>"
 
 function resultsConfig ($routeProvider) {
   $routeProvider
@@ -36067,7 +36101,15 @@ const getData = ($http) => {
     const url = `/api/infoPoll/${id}`
     return $http.get(url)
   }
-  return { getInfoPoll }
+
+  const vote = (idPoll, idsVote) => {
+    const url = `/api/poll/${idPoll}/vote/${idsVote}`
+    return $http.put(url)
+  }
+  return {
+    getInfoPoll,
+    vote
+  }
 }
 
 module.exports = getData

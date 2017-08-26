@@ -1,6 +1,6 @@
 const handlePostRegister = (req, res) => {
-  const pollDataObject = req.body
-  console.log(pollDataObject)
+  const registerObject = req.body
+  console.log(registerObject)
   res.redirect('/#!/username')
 }
 

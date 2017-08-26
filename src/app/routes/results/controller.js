@@ -1,4 +1,4 @@
-/* global Chart */
+/* global Chart, angular */
 'use strict'
 
 const FileSaver = require('file-saver')
@@ -7,28 +7,73 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
   const { id } = $routeParams
   let myChart
   let saveCount = 0
+  let dataOptions
+  let chartOptions
+  let chartVotes
 
-  $scope.saveChart = function () {
-    document.getElementById('myChart').toBlob(function (blob) {
+  /* ------------ START API CALLS ------------ */
+
+  dataService.getInfoPoll(id)
+    .then((response) => {
+      $scope.question = response.data.question
+      $scope.status = response.data.pollInfo.status
+      $scope.totalVotes = response.data.pollInfo.totalVotes
+      $scope.options = response.data.options
+
+      dataOptions = response.data.options
+
+      chartOptions = dataOptions.map((obj) => {
+        return obj.option
+      })
+
+      chartVotes = dataOptions.map((obj) => {
+        return obj.votes
+      })
+
+      console.log(response)
+    })
+    .catch(console.log)
+
+  /* ------------ ON CLICK ACTIONS -------- */
+
+  $scope.saveChart = () => {
+    document.getElementById('myChart').toBlob((blob) => {
       saveCount++
       FileSaver.saveAs(blob, `chart_${saveCount}.png`)
     })
   }
 
-  $scope.changeChart = function (chartType) {
+  $scope.vote = (listOptions) => {
+    const optionsVoted = []
+    angular.forEach(listOptions, (value, key) => {
+      if (listOptions[key].selected === listOptions[key]._id) {
+        optionsVoted.push(listOptions[key].selected)
+      }
+    })
+    console.log(optionsVoted)
+    const idsVote = optionsVoted.join('_')
+    console.log(idsVote)
+
+    dataService.vote(id, idsVote)
+      .then(console.log)
+      .catch(console.log)
+  }
+
+  /* ------------ ON CHANGE ACTIONS -------- */
+
+  $scope.changeChart = (chartType) => {
     const ctx = document.getElementById('myChart')
     myChart.destroy()
-    console.log(chartType)
 
     switch (chartType) {
       case 'line':
       case 'horizontalBar':
       case 'bar':
         let data = {
-          labels: ['Blue', 'Red', 'Yellow', 'Green', 'Purple', 'Orange'],
+          labels: chartOptions,
           datasets: [{
-            label: '# of Votes',
-            data: [12, 19, 3, 5, 2, 3],
+            label: chartOptions, // mirar flata algo
+            data: chartVotes,
             backgroundColor: [
               'rgba(54, 162, 235, 0.2)',
               'rgba(255, 99, 132, 0.2)',
@@ -39,7 +84,7 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
             ],
             borderColor: [
               'rgba(54, 162, 235, 1)',
-              'rgba(255,99,132,1)',
+              'rgba(255,99,132, 1)',
               'rgba(255, 206, 86, 1)',
               'rgba(75, 192, 192, 1)',
               'rgba(153, 102, 255, 1)',
@@ -69,24 +114,25 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
       case 'pie':
         let pieData = {
           datasets: [{
-            data: [10, 20, 30],
+            data: chartVotes,
             backgroundColor: [
               'rgba(54, 162, 235, 0.3)',
               'rgba(255, 99, 132, 0.3)',
-              'rgba(255, 206, 86, 0.3)'
+              'rgba(255, 206, 86, 0.3)',
+              'rgba(75, 192, 192, 0.3)',
+              'rgba(153, 102, 255, 0.3)',
+              'rgba(255, 159, 64, 0.3)'
             ],
             borderColor: [
               'rgba(54, 162, 235, 1)',
               'rgba(255,99,132,1)',
-              'rgba(255, 206, 86, 1)'
+              'rgba(255, 206, 86, 1)',
+              'rgba(75, 192, 192, 1)',
+              'rgba(153, 102, 255, 1)',
+              'rgba(255, 159, 64, 1)'
             ]
           }],
-        // These labels appear in the legend and in the tooltips when hovering different arcs
-          labels: [
-            'Blue',
-            'Red',
-            'Yellow'
-          ]
+          labels: chartOptions
         }
 
         myChart = new Chart(ctx, {
@@ -101,7 +147,7 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
   }
 
   /* --------------- Default BAR CHART ---------------- */
-  var initialGraph = setTimeout(function () {
+  var initialGraph = setTimeout(() => {
     const ctx = document.getElementById('myChart')
 
     let data = {
@@ -146,18 +192,6 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
     })
     clearTimeout(initialGraph)
   }, 200)
-
-  /* ------------ API CALLS ------------ */
-
-  dataService.getInfoPoll(id)
-    .then((response) => {
-      $scope.question = response.data.question
-      $scope.options = response.data.options
-      $scope.status = response.data.pollInfo.status
-      $scope.votes = response.data.pollInfo.votes
-      console.log(response)
-    })
-    .catch(console.log)
 }
 
 module.exports = resultsController

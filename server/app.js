@@ -2,6 +2,7 @@ const express = require('express')
 const path = require('path')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
+// const methodOverride = require('method-override')
 // const http = require('http')
 // const socket = require('socket.io')
 
@@ -22,6 +23,7 @@ app.use(express.static(pathPublic))
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+// app.use(methodOverride('X-HTTP-Method-Override'))
 
 app.use(routes)
 
