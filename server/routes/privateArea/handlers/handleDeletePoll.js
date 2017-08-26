@@ -1,9 +1,8 @@
 const Poll = require('../../../models/poll.js')
-
-function handleDeletePoll (req, res) {
-  const id = req.params.id
+const handleDeletePoll = (req, res) => {
+  const {id} = req.params
   Poll.findByIdAndRemove(id)
-    .then(() => res.redirect(''))
+    .then(() => res.status(200))
     .catch(() => res.send(`FAIL!! Poll w/ id ${id} was NOT removed`))
 }
 

@@ -1,7 +1,8 @@
-function handlePostLogin (req, res) {
-  const pollDataObject = req.body
-  console.log(pollDataObject)
-  res.status(200).send('form post recived')
+const handlePostLogin = (req, res) => {
+  const { email, password } = req.body
+  console.log(`email: ${email}, password:${password}`)
+  if (email === 'hola@hola' && password === 'qwerty') res.redirect('/#!/username')
+  else res.send('unauthorized')
 }
 
 module.exports = handlePostLogin

@@ -4,6 +4,7 @@ const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 
 const routes = require('./routes/')
+const urlDb = 'mongodb://localhost:27017/polls'
 
 const app = express()
 const PORT = process.env.PORT || 3002
@@ -16,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
 mongoose.Promise = Promise
-// mongoose.connect(urlDb, { useMongoClient: true })
+mongoose.connect(urlDb, { useMongoClient: true })
 
 app.use(routes)
 

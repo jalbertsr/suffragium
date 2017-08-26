@@ -4,7 +4,7 @@ const htmlResults = fs.readFileSync(path.join(__dirname, '/template.html'), 'utf
 
 function resultsConfig ($routeProvider) {
   $routeProvider
-    .when('/results', { // add /results/:id
+    .when('/poll/:id', {
       template: htmlResults,
       controller: 'resultsController'
     })

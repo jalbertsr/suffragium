@@ -3,7 +3,8 @@
 
 const FileSaver = require('file-saver')
 
-function resultsController ($scope, $rootScope) {
+function resultsController ($scope, $rootScope, $routeParams, dataService) {
+  const { id } = $routeParams
   let myChart
   let saveCount = 0
 
@@ -93,13 +94,13 @@ function resultsController ($scope, $rootScope) {
           data: pieData
         })
     }
-    const imgBase64 = setTimeout(function () {
-      const graphUrl = ctx.toDataURL()
-      console.log(graphUrl)
-    }, 1000)
+    // const imgBase64 = setTimeout(function () {
+    //   const graphUrl = ctx.toDataURL()
+    //   console.log(graphUrl)
+    // }, 1000)
   }
 
-  /* --------------- BAR CHART ---------------- */
+  /* --------------- Default BAR CHART ---------------- */
   var initialGraph = setTimeout(function () {
     const ctx = document.getElementById('myChart')
 
@@ -145,6 +146,17 @@ function resultsController ($scope, $rootScope) {
     })
     clearTimeout(initialGraph)
   }, 200)
+
+  /* ------------ API CALLS ------------ */
+
+  dataService.getInfoPoll(id)
+    .then((response) => {
+      $scope.question = response.data.question
+      $scope.options = response.data.options
+      $scope.status = response.data.status
+      console.log(response)
+    })
+    .catch(console.log)
 }
 
 module.exports = resultsController

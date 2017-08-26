@@ -1,7 +1,7 @@
-function handlePostRegister (req, res) {
+const handlePostRegister = (req, res) => {
   const pollDataObject = req.body
   console.log(pollDataObject)
-  res.status(200).send('form post recived')
+  res.redirect('/#!/username')
 }
 
 module.exports = handlePostRegister

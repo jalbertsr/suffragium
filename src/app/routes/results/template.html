@@ -20,23 +20,11 @@
     <div class="row">
         <div class="row col s11 l4 offset-l1 container-question">
             <form>
-                <p class="title-results-style title-size">Question will display here bla bla ?</p>
+                <p class="title-results-style title-size">{{question}}
                 <!-- begin option -->
-                <div class="container space">
-                    <input type="checkbox" id="option1">
-                    <label for="option1">option1</label>
-                </div>
-                <div class="container space">
-                    <input type="checkbox" id="option2" checked>
-                    <label for="option2">option2</label>
-                </div>
-                <div class="container space">
-                    <input type="checkbox" id="option3">
-                    <label for="option3">option3</label>
-                </div>
-                <div class="container space">
-                    <input type="checkbox" id="option4">
-                    <label for="option4">option4</label>
+                <div class="container space" ng-repeat="option in options">
+                    <input type="checkbox" id="option{{$index}}">
+                    <label for="option{{$index}}">{{option}}</label>
                 </div>
                 <!-- end option -->
                 <button class="btn voted" type="submit" name="action" onclick="Materialize.toast('Voted!', 1000)">Vote

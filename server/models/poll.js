@@ -8,7 +8,7 @@ const PollSchema = new mongoose.Schema({
   },
   options: [ String ],
   config: {
-    duplicationCheking: {
+    duplicationChecking: {
       type: String,
       default: 'none'
     }
@@ -16,12 +16,16 @@ const PollSchema = new mongoose.Schema({
   allowMoreThanOne: {
     type: Boolean,
     default: false
+  },
+  status: {
+    type: Boolean,
+    default: true
   }
 }, { collection })
 
-PollSchema.pre('save', function (next) {
-  // email(this.email, 'Your record has changed');
-  next()
-})
+// PollSchema.pre('save', function (next) {
+//   email(this.email, 'Your record has changed');
+//   next()
+// })
 
 module.exports = mongoose.model('Poll', PollSchema)
