@@ -153,7 +153,8 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
     .then((response) => {
       $scope.question = response.data.question
       $scope.options = response.data.options
-      $scope.status = response.data.status
+      $scope.status = response.data.pollInfo.status
+      $scope.votes = response.data.pollInfo.votes
       console.log(response)
     })
     .catch(console.log)

@@ -8,7 +8,7 @@ const handleInfoPoll = (req, res) => {
       res.json(info)
     })
     .catch(() => {
-      res.send('info query bad search')
+      res.send(`FAIL to find poll w/ ${id}`)
     })
 }
 

@@ -11,16 +11,23 @@ const PollSchema = new mongoose.Schema({
     duplicationChecking: {
       type: String,
       default: 'none'
+    },
+    allowMoreThanOne: {
+      type: Boolean,
+      default: false
     }
   },
-  allowMoreThanOne: {
-    type: Boolean,
-    default: false
-  },
-  status: {
-    type: Boolean,
-    default: true
+  pollInfo: {
+    status: {
+      type: Boolean,
+      default: true
+    },
+    votes: {
+      type: Number,
+      default: 0
+    }
   }
+  // versionKey: false
 }, { collection })
 
 // PollSchema.pre('save', function (next) {

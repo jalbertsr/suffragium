@@ -27,13 +27,13 @@
                     <label for="option{{$index}}">{{option}}</label>
                 </div>
                 <!-- end option -->
-                <button class="btn voted" type="submit" name="action" onclick="Materialize.toast('Voted!', 1000)">Vote
+                <button class="btn voted" type="submit" name="action" onclick="Materialize.toast('Voted!', 1000)" ng-disabled="{{status}}">Vote
                     <i class="material-icons right">send</i>
                 </button>
             </form>
             <div class="title-results-style">
-                <p class="info-results">Total Votes: {{30+45}}</p>
-                <p>Status: Closed</p>
+                <p class="info-results">Total Votes: {{votes}}</p>
+                <p>Status: {{status ? 'Open' : 'Closed'}}</p>
             </div>
         </div>
         <div class="col s11 l6 row container-graph">

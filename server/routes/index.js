@@ -11,6 +11,8 @@ router.get('/api/infoPoll/:id', infoPoll)
 router.post('/login/', handlePostLogin)
 router.post('/register/', handlePostRegister)
 router.post('/privateArea/', getPollInfo)
+
+// middelware -> usuario logeado? ->  este usario le pertenece esta encuesta? -> si/no
 router.delete('/privateArea/:id', removePoll)
 
 module.exports = router
