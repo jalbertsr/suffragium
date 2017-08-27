@@ -20,6 +20,6 @@ router.post('/privateArea/', getPollInfo)
 
 // middleware -> usuario logeado? ->  este usario le pertenece esta encuesta? -> si/no
 router.delete('/api/privateArea/:id', removePoll)
-router.put('/api/privateArea/:id', updateStatus)
+router.put('/api/privateArea/:id/:status', updateStatus)
 
 module.exports = router

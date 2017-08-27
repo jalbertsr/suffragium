@@ -80,46 +80,17 @@
         </div>
         <!-- end info modal -->
     </div>
+    <!-- begin my polls -->
     <div class="col l5 offset-l1 offset-s2 s9">
         <p class="title-create-style owned-polls"> My polls </p>
-        <div class="personal-polls row">
-            <a href="#!/results">
-                <p class="question-own-poll">What is your favourite frontend freamwork?</p>
+        <div class="personal-polls row" ng-repeat="poll in polls" id="{{poll._id}}">
+            <a href="#!/poll/{{poll._id}}">
+                <p class="question-own-poll">{{poll.question}}</p>
             </a>
             <div class="switch col l8 s8">
                 <label>
                     Close
-                    <input type="checkbox">
-                    <span class="lever"></span> Open
-                </label>
-            </div>
-            <div class="col l4 s4" ng-click="deletePoll($event)">
-                <span class="info-icon info-pointer"><i class="material-icons">delete</i></span>
-            </div>
-        </div>
-        <div class="personal-polls row">
-            <a href="#!/results">
-                <p class="question-own-poll">Another queston ?</p>
-            </a>
-            <div class="switch col l8 s8">
-                <label>
-                    Close
-                    <input type="checkbox">
-                    <span class="lever"></span> Open
-                </label>
-            </div>
-            <div class="col l4 s4" ng-click="deletePoll($event)">
-                <span class="info-icon info-pointer"><i class="material-icons">delete</i></span>
-            </div>
-        </div>
-        <div class="personal-polls row">
-            <a href="#!/results">
-                <p class="question-own-poll">Bla blaaaa blaaaa blaaa?</p>
-            </a>
-            <div class="switch col l8 s8">
-                <label>
-                    Close
-                    <input type="checkbox">
+                    <input type="checkbox" ng-change="updateStatus(poll)" ng-model="poll.status" ng-checked="{{poll.status}}">
                     <span class="lever"></span> Open
                 </label>
             </div>
@@ -128,4 +99,5 @@
             </div>
         </div>
     </div>
+    <!-- end my polls -->
 </div>

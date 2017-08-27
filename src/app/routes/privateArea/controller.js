@@ -26,12 +26,39 @@ function privateAreaController ($scope, dataService) {
     optionNumber++
   }
 
+  $scope.updateStatus = (statusData) => {
+    const status = statusData.status
+    const id = statusData.id
+    dataService.updateStatus(id, status)
+      .then(console.log)
+      .catch(console.log)
+  }
+
   $scope.deletePoll = function ($event) {
+    console.log($event.currentTarget.parentNode)
     $event.currentTarget.parentNode.remove()
-    // dataService.deletePoll
+    // dataService.deletePoll(id)
     //   .then(console.log)
     //   .catch(console.log)
   }
+
+  /* -------- FALSE DATA FOR TEST -------- */
+
+  $scope.polls = [{
+    question: 'Favourite frontend freamwork?',
+    _id: '327462349237498724',
+    status: true
+  },
+  {
+    question: 'Favourite backend freamwork?',
+    _id: '321111111137498724',
+    status: false
+  },
+  {
+    question: 'Favourite pizza?',
+    _id: '327462123412312344',
+    status: true
+  }]
 }
 
 module.exports = privateAreaController

@@ -15,10 +15,16 @@ const getData = ($http) => {
     const url = `/api/getPolls/`
     return $http.get(url)
   }
+
+  const updateStatus = (id, status) => {
+    const url = `/api/privateArea/${id}/${status}`
+    return $http.put(url)
+  }
   return {
     getInfoPoll,
     vote,
-    getPolls
+    getPolls,
+    updateStatus
   }
 }
 
