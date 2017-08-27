@@ -1,6 +1,6 @@
 'use strict'
 
-function privateAreaController ($scope) {
+function privateAreaController ($scope, dataService) {
   const modal = document.getElementById('info-modal')
   const btn = document.getElementById('info-activate')
   const btnClose = document.getElementById('btnClose')
@@ -28,6 +28,9 @@ function privateAreaController ($scope) {
 
   $scope.deletePoll = function ($event) {
     $event.currentTarget.parentNode.remove()
+    // dataService.deletePoll
+    //   .then(console.log)
+    //   .catch(console.log)
   }
 }
 

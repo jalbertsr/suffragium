@@ -19,10 +19,10 @@
 <div class="container-results">
     <div class="row">
         <div class="row col s11 l4 offset-l1 container-question">
-            <p class="title-results-style title-size">{{question}}
+            <p class="title-results-style title-size">{{question}}</p>
             <!-- begin option -->
             <div class="container space" ng-repeat="option in options" id="{{option._id}}">
-                <input type="checkbox" id="option{{$index}}" ng-model="option.selected" ng-true-value="'{{option._id}}'" ng-false-value="false">
+                <input type="{{type}}" id="option{{$index}}" ng-model="option.selected" ng-true-value="'{{option._id}}'" ng-false-value="false">
                 <label for="option{{$index}}">{{option.option}}</label>
             </div>
             <!-- end option -->

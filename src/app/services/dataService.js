@@ -10,9 +10,15 @@ const getData = ($http) => {
     const url = `/api/poll/${idPoll}/vote/${idsVote}`
     return $http.put(url)
   }
+
+  const getPolls = () => {
+    const url = `/api/getPolls/`
+    return $http.get(url)
+  }
   return {
     getInfoPoll,
-    vote
+    vote,
+    getPolls
   }
 }
 

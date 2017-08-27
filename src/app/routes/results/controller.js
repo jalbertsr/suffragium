@@ -1,7 +1,8 @@
-/* global Chart, angular */
+/* global angular */
 'use strict'
 
 const FileSaver = require('file-saver')
+const Chart = require('chart.js')
 
 function resultsController ($scope, $rootScope, $routeParams, dataService) {
   const { id } = $routeParams
@@ -19,6 +20,8 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
       $scope.status = response.data.pollInfo.status
       $scope.totalVotes = response.data.pollInfo.totalVotes
       $scope.options = response.data.options
+      if (response.data.config.allowMoreThanOne) $scope.type = 'checkbox'
+      else $scope.type = 'radio'
 
       dataOptions = response.data.options
 
