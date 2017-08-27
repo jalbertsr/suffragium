@@ -20,12 +20,18 @@
     <div class="row">
         <div class="row col s11 l4 offset-l1 container-question">
             <p class="title-results-style title-size">{{question}}</p>
-            <!-- begin option -->
-            <div class="container space" ng-repeat="option in options" id="{{option._id}}">
-                <input type="{{type}}" id="option{{$index}}" ng-model="option.selected" ng-true-value="'{{option._id}}'" ng-false-value="false">
+            <!-- begin checkbox option -->
+            <div ng-if="allowMoreThanOne" class="container space" ng-repeat="option in options" id="{{option._id}}">
+                <input type="checkbox" id="option{{$index}}" ng-model="option.selected" ng-true-value="'{{option._id}}'" ng-false-value="false" >
                 <label for="option{{$index}}">{{option.option}}</label>
             </div>
-            <!-- end option -->
+            <!-- end checkbox option -->
+             <!-- begin radio option -->
+            <div ng-if="!allowMoreThanOne" class="container space" ng-repeat="option in options" id="{{option._id}}">
+                <input class="with-gap" type="radio" id="option{{$index}}" name="radio" ng-model="changedVal" value="{{$index}}" ng-checked="false" ng-click="getVal(option._id)">
+                <label for="option{{$index}}">{{option.option}}</label>
+            </div>
+            <!-- end radio option -->
             <button class="btn voted" type="submit" name="action" onclick="Materialize.toast('Voted!', 1000)" ng-disabled="{{status}}" ng-click="vote(options)">Vote
                 <i class="material-icons right">send</i>
             </button>

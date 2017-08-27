@@ -20,8 +20,7 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
       $scope.status = response.data.pollInfo.status
       $scope.totalVotes = response.data.pollInfo.totalVotes
       $scope.options = response.data.options
-      if (response.data.config.allowMoreThanOne) $scope.type = 'checkbox'
-      else $scope.type = 'radio'
+      $scope.allowMoreThanOne = response.data.config.allowMoreThanOne
 
       dataOptions = response.data.options
 
@@ -46,20 +45,28 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
     })
   }
 
-  $scope.vote = (listOptions) => {
-    const optionsVoted = []
-    angular.forEach(listOptions, (value, key) => {
-      if (listOptions[key].selected === listOptions[key]._id) {
-        optionsVoted.push(listOptions[key].selected)
-      }
-    })
-    console.log(optionsVoted)
-    const idsVote = optionsVoted.join('_')
-    console.log(idsVote)
+  $scope.getVal = (radioSelected) => {
+    $scope.radioSelected = radioSelected
+  }
 
-    dataService.vote(id, idsVote)
-      .then(console.log)
-      .catch(console.log)
+  $scope.vote = (listOptions) => {
+    if ($scope.allowMoreThanOne) {
+      const optionsVoted = []
+      angular.forEach(listOptions, (value, key) => {
+        if (listOptions[key].selected === listOptions[key]._id) {
+          optionsVoted.push(listOptions[key].selected)
+        }
+      })
+      const idsVote = optionsVoted.join('_')
+
+      dataService.vote(id, idsVote)
+        .then(console.log)
+        .catch(console.log)
+    } else {
+      dataService.vote(id, $scope.radioSelected)
+        .then(console.log)
+        .catch(console.log)
+    }
   }
 
   /* ------------ ON CHANGE ACTIONS -------- */
@@ -149,15 +156,15 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
     // }, 1000)
   }
 
-  /* --------------- Default BAR CHART ---------------- */
+  /* --------------- DEFAULT BAR CHART ---------------- */
   var initialGraph = setTimeout(() => {
     const ctx = document.getElementById('myChart')
 
     let data = {
-      labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+      labels: chartOptions,
       datasets: [{
         label: '# of Votes',
-        data: [12, 19, 3, 5, 2, 3],
+        data: chartVotes,
         backgroundColor: [
           'rgba(255, 99, 132, 0.2)',
           'rgba(54, 162, 235, 0.2)',
@@ -189,7 +196,7 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
     }
 
     myChart = new Chart(ctx, {
-      type: 'horizontalBar',
+      type: 'bar',
       data: data,
       options: options
     })

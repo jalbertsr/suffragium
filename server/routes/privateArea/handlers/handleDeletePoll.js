@@ -1,4 +1,5 @@
 const Poll = require('../../../models/poll.js')
+
 const handleDeletePoll = (req, res) => {
   const {id} = req.params
   Poll.findByIdAndRemove(id)
