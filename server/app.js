@@ -6,7 +6,7 @@ const app = express()
 
 const routes = require('./routes/')
 
-const urlDb = 'mongodb://localhost:27017/polls'
+const urlDb = process.env.urlDb || 'mongodb://localhost:27017/polls'
 const PORT = process.env.PORT || 3002
 
 const pathPublic = path.join(process.cwd(), 'client')
