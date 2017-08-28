@@ -12,7 +12,7 @@ const PollSchema = new mongoose.Schema({
     },
     votes: {
       type: Number,
-      default: 4
+      default: 0
     }
   }],
   config: {
