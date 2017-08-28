@@ -35,7 +35,6 @@ const PollSchema = new mongoose.Schema({
       default: 0
     }
   }
-  // versionKey: false
 }, { collection })
 
 // PollSchema.pre('save', function (next) {

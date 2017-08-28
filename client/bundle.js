@@ -53210,10 +53210,11 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
       case 'line':
       case 'horizontalBar':
       case 'bar':
+        Chart.defaults.global.legend.display = false
         let data = {
           labels: chartOptions,
           datasets: [{
-            label: chartOptions, // mirar flata algo
+            label: '',
             data: chartVotes,
             backgroundColor: [
               'rgba(54, 162, 235, 0.2)',
@@ -53237,6 +53238,11 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
 
         let options = {
           scales: {
+            xAxes: [{
+              ticks: {
+                beginAtZero: true
+              }
+            }],
             yAxes: [{
               ticks: {
                 beginAtZero: true
@@ -53253,6 +53259,7 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
         break
       case 'doughnut':
       case 'pie':
+        Chart.defaults.global.legend.display = true
         let pieData = {
           datasets: [{
             data: chartVotes,
@@ -53290,11 +53297,12 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
   /* --------------- DEFAULT BAR CHART ---------------- */
   var initialGraph = setTimeout(() => {
     const ctx = document.getElementById('myChart')
+    Chart.defaults.global.legend.display = false
 
     let data = {
       labels: chartOptions,
       datasets: [{
-        label: '# of Votes',
+        label: '',
         data: chartVotes,
         backgroundColor: [
           'rgba(255, 99, 132, 0.2)',
