@@ -20,6 +20,7 @@ const getData = ($http) => {
     const url = `/api/privateArea/${id}/${status}`
     return $http.put(url)
   }
+
   return {
     getInfoPoll,
     vote,

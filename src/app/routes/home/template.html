@@ -69,95 +69,22 @@
         <div class="container">
             <h2 class="header text_b">Polls</h2>
             <div class="row">
-                <div class="col s12 m4 l4">
+                <div class="col s12 m4 l4" ng-repeat="poll in polls">
                     <div class="card">
                         <div class="card-image waves-effect waves-block waves-light">
-                            <a href="#!/poll"><img class="thumbnail-card" ng-src="https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360"></a>
+                            <a href="#!/poll/{{poll._id}}"><img class="thumbnail-card" ng-src="https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360"></a>
                         </div>
                         <div class="card-content">
-                            <span class="card-title activator grey-text text-darken-4">Poll Question </span>
-                            <p><a href="#!/poll">Go to poll</a></p>
+                            <span class="title-nowrap card-title activator grey-text text-darken-4">{{poll.question}}</span>
+                            <p><a href="#!/poll/{{poll._id}}">Go to poll</a></p>
                         </div>
                         <div class="card-reveal">
-                            <span class="card-title grey-text text-darken-4">Poll Question <i class="mdi-navigation-close right"></i></span>
-                            <p>Here is some more information about this poll.</p>
+                            <span class="card-title grey-text text-darken-4">{{poll.question}}<i class="mdi-navigation-close right"></i></span>
+                            <p>Vote options:</p>
+                            <p ng-repeat="option in poll.options">{{option.option}}</p>
                         </div>
                     </div>
-                </div>
-                <div class="col s12 m4 l4">
-                    <div class="card">
-                        <div class="card-image waves-effect waves-block waves-light">
-                            <a href="#!/poll"><img class="thumbnail-card" ng-src="https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360"</a>
-                        </div>
-                        <div class="card-content">
-                            <span class="card-title activator grey-text text-darken-4">Poll Question </span>
-                            <p><a href="#!/poll">Go to poll</a></p>
-                        </div>
-                        <div class="card-reveal">
-                            <span class="card-title grey-text text-darken-4">Poll Question <i class="mdi-navigation-close right"></i></span>
-                            <p>Here is some more information about this poll.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col s12 m4 l4">
-                    <div class="card">
-                        <div class="card-image waves-effect waves-block waves-light">
-                            <a href="#!/poll"><img class="thumbnail-card" ng-src="https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360"></a>
-                        </div>
-                        <div class="card-content">
-                            <span class="card-title activator grey-text text-darken-4">Poll Question </span>
-                            <p><a href="#!/poll">Go to poll</a></p>
-                        </div>
-                        <div class="card-reveal">
-                            <span class="card-title grey-text text-darken-4">Poll Question <i class="mdi-navigation-close right"></i></span>
-                            <p>Here is some more information about this poll.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col s12 m4 l4">
-                    <div class="card">
-                        <div class="card-image waves-effect waves-block waves-light">
-                            <a href="#!/poll"><img class="thumbnail-card" ng-src="https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360"></a>
-                        </div>
-                        <div class="card-content">
-                            <span class="card-title activator grey-text text-darken-4">Poll Question </span>
-                            <p><a href="#!/poll">Go to poll</a></p>
-                        </div>
-                        <div class="card-reveal">
-                            <span class="card-title grey-text text-darken-4">Poll Question <i class="mdi-navigation-close right"></i></span>
-                            <p>Here is some more information about this poll.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col s12 m4 l4">
-                    <div class="card">
-                        <div class="card-image waves-effect waves-block waves-light">
-                            <a ng-href="#!/poll"><img class="thumbnail-card" ng-src="https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360"></a>
-                        </div>
-                        <div class="card-content">
-                            <span class="card-title activator grey-text text-darken-4">Poll Question </span>
-                            <p><a ng-href="#!/poll">Go to poll</a></p>
-                        </div>
-                        <div class="card-reveal">
-                            <span class="card-title grey-text text-darken-4">Poll Question <i class="mdi-navigation-close right"></i></span>
-                            <p>Here is some more information about this poll.</p>
-                        </div>
-                    </div>
-                </div>                <div class="col s12 m4 l4">
-                    <div class="card">
-                        <div class="card-image waves-effect waves-block waves-light">
-                            <a ng-href="#!/poll"><img class="thumbnail-card" ng-src="https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360"></a>
-                        </div>
-                        <div class="card-content">
-                            <span class="card-title activator grey-text text-darken-4">Poll Question </span>
-                            <p><a ng-href="#!/poll">Go to poll</a></p>
-                        </div>
-                        <div class="card-reveal">
-                            <span class="card-title grey-text text-darken-4">Poll Question <i class="mdi-navigation-close right"></i></span>
-                            <p>Here is some more information about this poll.</p>
-                        </div>
-                    </div>
-                </div>
+                </div>                
             </div>
         </div>
     </div>

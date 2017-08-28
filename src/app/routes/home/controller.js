@@ -2,7 +2,10 @@
 
 function homeController ($scope, dataService) {
   dataService.getPolls()
-    .then(console.log)
+    .then((response) => {
+      $scope.polls = response.data
+      console.log(response)
+    })
     .catch(console.log)
 }
 

@@ -23,6 +23,7 @@
   "dependencies": {
     "body-parser": "^1.17.2",
     "chart.js": "^2.6.0",
+    "devtool": "^2.3.1",
     "express": "^4.15.4",
     "file-saver": "^1.3.3",
     "mongoose": "^4.11.7",

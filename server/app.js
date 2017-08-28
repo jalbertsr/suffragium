@@ -21,14 +21,13 @@ app.use(bodyParser.json())
 app.use(routes)
 
 const server = app.listen(PORT)
+
 var io = require('socket.io').listen(server)
 
-io.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' })
-  socket.on('newVote', (data) => console.log(data))
-  socket.broadcast.emit('totalVote', {votes: 30})
-  socket.on('my other event', function (data) {
-    console.log(data)
+io.on('connection', (socket) => {
+  socket.on('newVote', (data) => {
+    console.log(data, 'fadfsd')
+    io.emit('totalVotes', {votes: 30})
   })
 })
 
