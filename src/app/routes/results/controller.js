@@ -3,6 +3,12 @@
 
 const FileSaver = require('file-saver')
 const Chart = require('chart.js')
+//  const io = require('socket.io')
+const socket = require('socket.io-client').connect({'force new connection': true})
+socket.on('news', function (data) {
+  console.log(data)
+  socket.emit('my other event', { my: 'data' })
+})
 
 function resultsController ($scope, $rootScope, $routeParams, dataService) {
   const { id } = $routeParams
@@ -67,7 +73,15 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
         .then(console.log)
         .catch(console.log)
     }
+
+    socket.on('news', function (data) {
+      console.log(data)
+      socket.emit('my other event', { my: 'data' })
+    })
+    socket.emit('newVote', {hello: 'hi'})
   }
+
+  socket.on('totalVotes', (info) => console.log(info))
 
   /* ------------ ON CHANGE ACTIONS -------- */
 
