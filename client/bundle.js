@@ -59366,16 +59366,100 @@ module.exports = registerConfig
 
 const FileSaver = require('file-saver')
 const Chart = require('chart.js')
-//  const io = require('socket.io')
 const socket = require('socket.io-client').connect({'force new connection': true})
+const backgroundColor = ['rgba(54, 162, 235, 0.3)', 'rgba(255, 99, 132, 0.3)', 'rgba(255, 206, 86, 0.3)', 'rgba(75, 192, 192, 0.3)', 'rgba(153, 102, 255, 0.3)', 'rgba(255, 159, 64, 0.3)']
+const borderColor = ['rgba(54, 162, 235, 1)', 'rgba(255,99,132, 1)', 'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)']
 
 function resultsController ($scope, $rootScope, $routeParams, dataService) {
   const { id } = $routeParams
   let myChart
   let saveCount = 0
   let dataOptions
-  let chartOptions
-  let chartVotes
+  $scope.currentChart = 'bar'
+
+  /* -------- SOCKET UPDATE ALL ----------- */
+  socket.on('updateInfo', (idPollUpdated) => {
+    console.log(idPollUpdated, 'update all clients')
+    dataService.getInfoPoll(idPollUpdated)
+    .then((response) => {
+      $scope.question = response.data.question
+      $scope.status = response.data.pollInfo.status
+      $scope.totalVotes = response.data.pollInfo.totalVotes
+      $scope.options = response.data.options
+      $scope.allowMoreThanOne = response.data.config.allowMoreThanOne
+
+      dataOptions = response.data.options
+
+      $scope.chartOptions = dataOptions.map((obj) => {
+        return obj.option
+      })
+
+      $scope.chartVotes = dataOptions.map((obj) => {
+        return obj.votes
+      })
+
+      console.log(response)
+    })
+    .catch(console.log)
+    const ctx = document.getElementById('myChart')
+    myChart.destroy()
+    console.log($scope.currentChart)
+
+    switch ($scope.currentChart) {
+      case 'line':
+      case 'horizontalBar':
+      case 'bar':
+        Chart.defaults.global.legend.display = false
+        let data = {
+          labels: $scope.chartOptions,
+          datasets: [{
+            label: '',
+            data: $scope.chartVotes,
+            backgroundColor: backgroundColor,
+            borderColor: borderColor,
+            borderWidth: 1
+          }]
+        }
+
+        let options = {
+          scales: {
+            xAxes: [{
+              ticks: {
+                beginAtZero: true
+              }
+            }],
+            yAxes: [{
+              ticks: {
+                beginAtZero: true
+              }
+            }]
+          }
+        }
+
+        myChart = new Chart(ctx, {
+          type: $scope.currentChart,
+          data: data,
+          options: options
+        })
+        break
+      case 'doughnut':
+      case 'pie':
+        Chart.defaults.global.legend.display = true
+        let pieData = {
+          datasets: [{
+            data: $scope.chartVotes,
+            backgroundColor: backgroundColor,
+            borderColor: borderColor
+          }],
+          labels: $scope.chartOptions
+        }
+
+        myChart = new Chart(ctx, {
+          type: $scope.currentChart,
+          data: pieData
+        })
+    }
+  })
 
   /* ------------ START API CALLS ------------ */
 
@@ -59389,11 +59473,11 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
 
       dataOptions = response.data.options
 
-      chartOptions = dataOptions.map((obj) => {
+      $scope.chartOptions = dataOptions.map((obj) => {
         return obj.option
       })
 
-      chartVotes = dataOptions.map((obj) => {
+      $scope.chartVotes = dataOptions.map((obj) => {
         return obj.votes
       })
 
@@ -59432,17 +59516,14 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
         .then(console.log)
         .catch(console.log)
     }
-
-    socket.emit('newVote', {hello: 'hi'})
+    // emit vote
+    socket.emit('newVote', {'voto': 'click'})
   }
-
-  socket.on('totalVotes', (info) => {
-    console.log(info, 'aaaaa')
-  })
 
   /* ------------ ON CHANGE ACTIONS -------- */
 
   $scope.changeChart = (chartType) => {
+    $scope.currentChart = chartType
     const ctx = document.getElementById('myChart')
     myChart.destroy()
 
@@ -59452,26 +59533,12 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
       case 'bar':
         Chart.defaults.global.legend.display = false
         let data = {
-          labels: chartOptions,
+          labels: $scope.chartOptions,
           datasets: [{
             label: '',
-            data: chartVotes,
-            backgroundColor: [
-              'rgba(54, 162, 235, 0.2)',
-              'rgba(255, 99, 132, 0.2)',
-              'rgba(255, 206, 86, 0.2)',
-              'rgba(75, 192, 192, 0.2)',
-              'rgba(153, 102, 255, 0.2)',
-              'rgba(255, 159, 64, 0.2)'
-            ],
-            borderColor: [
-              'rgba(54, 162, 235, 1)',
-              'rgba(255,99,132, 1)',
-              'rgba(255, 206, 86, 1)',
-              'rgba(75, 192, 192, 1)',
-              'rgba(153, 102, 255, 1)',
-              'rgba(255, 159, 64, 1)'
-            ],
+            data: $scope.chartVotes,
+            backgroundColor: backgroundColor,
+            borderColor: borderColor,
             borderWidth: 1
           }]
         }
@@ -59502,25 +59569,11 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
         Chart.defaults.global.legend.display = true
         let pieData = {
           datasets: [{
-            data: chartVotes,
-            backgroundColor: [
-              'rgba(54, 162, 235, 0.3)',
-              'rgba(255, 99, 132, 0.3)',
-              'rgba(255, 206, 86, 0.3)',
-              'rgba(75, 192, 192, 0.3)',
-              'rgba(153, 102, 255, 0.3)',
-              'rgba(255, 159, 64, 0.3)'
-            ],
-            borderColor: [
-              'rgba(54, 162, 235, 1)',
-              'rgba(255,99,132,1)',
-              'rgba(255, 206, 86, 1)',
-              'rgba(75, 192, 192, 1)',
-              'rgba(153, 102, 255, 1)',
-              'rgba(255, 159, 64, 1)'
-            ]
+            data: $scope.chartVotes,
+            backgroundColor: backgroundColor,
+            borderColor: borderColor
           }],
-          labels: chartOptions
+          labels: $scope.chartOptions
         }
 
         myChart = new Chart(ctx, {
@@ -59540,26 +59593,12 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
     Chart.defaults.global.legend.display = false
 
     let data = {
-      labels: chartOptions,
+      labels: $scope.chartOptions,
       datasets: [{
         label: '',
-        data: chartVotes,
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.2)',
-          'rgba(54, 162, 235, 0.2)',
-          'rgba(255, 206, 86, 0.2)',
-          'rgba(75, 192, 192, 0.2)',
-          'rgba(153, 102, 255, 0.2)',
-          'rgba(255, 159, 64, 0.2)'
-        ],
-        borderColor: [
-          'rgba(255,99,132,1)',
-          'rgba(54, 162, 235, 1)',
-          'rgba(255, 206, 86, 1)',
-          'rgba(75, 192, 192, 1)',
-          'rgba(153, 102, 255, 1)',
-          'rgba(255, 159, 64, 1)'
-        ],
+        data: $scope.chartVotes,
+        backgroundColor: backgroundColor,
+        borderColor: borderColor,
         borderWidth: 1
       }]
     }
@@ -59580,7 +59619,7 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
       options: options
     })
     clearTimeout(initialGraph)
-  }, 200)
+  }, 500)
 }
 
 module.exports = resultsController

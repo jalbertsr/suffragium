@@ -22,13 +22,8 @@ app.use(routes)
 
 const server = app.listen(PORT)
 
-var io = require('socket.io').listen(server)
+const configSocket = require('./socketio/configSocket.js')
 
-io.on('connection', (socket) => {
-  socket.on('newVote', (data) => {
-    console.log(data, 'fadfsd')
-    io.emit('totalVotes', {votes: 30})
-  })
-})
+configSocket(server, app)
 
 console.log(`Listening on PORT ${PORT}`)
