@@ -44,7 +44,6 @@ const handlePostInfoPoll = (req, res) => {
   User
     .findByIdAndUpdate(userID, {$push: {ownedPolls: {uid: _id}}})
     .then((data) => {
-      console.log('aaaaaaaaaaaa', data)
       res.redirect(`/#!/poll/${_id}`)
     })
     .catch(() => res.send(`FAIL to add the poll w/ id ${_id} to the user w/ id ${userID}`))

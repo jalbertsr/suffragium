@@ -84,14 +84,14 @@
     <!-- begin my polls -->
     <div class="col l5 offset-l1 offset-s2 s9">
         <p class="title-create-style owned-polls"> My polls </p>
-        <div class="personal-polls row" ng-repeat="poll in polls" id="{{poll._id}}">
-            <a href="#!/poll/{{poll._id}}">
-                <p class="question-own-poll">{{poll.question}}</p>
+        <div class="personal-polls row" ng-repeat="poll in userPolls" id="{{poll.uid._id}}">
+            <a href="#!/poll/{{poll.uid._id}}">
+                <p class="question-own-poll">{{poll.uid.question}}</p>
             </a>
             <div class="switch col l8 s8">
                 <label>
                     Close
-                    <input type="checkbox" ng-change="updateStatus(poll)" ng-model="poll.status" ng-checked="{{poll.status}}">
+                    <input type="checkbox" ng-change="updateStatus(poll.uid)" ng-model="poll.uid.pollInfo.status" ng-checked="{{poll.uid.pollInfo.status}}">
                     <span class="lever"></span> Open
                 </label>
             </div>

@@ -13,7 +13,7 @@ const getPolls = require('./home/handlers/handleGetPolls')
 
 router.put('/api/poll/:pollId/vote/:voteIds', handleVote) // middleware gordo, cookie - ip - login - etc...
 router.get('/api/infoPoll/:id', infoPoll)
-router.get('/api/getPolls/:id', getPolls)
+router.get('/api/getPolls/', getPolls)
 router.get('/api/infoUser/:id', getUserPolls)
 router.post('/login/', handlePostLogin)
 router.post('/register/', handlePostRegister)

@@ -2,7 +2,6 @@ const User = require('../../../models/user.js')
 
 const getUserPolls = (req, res) => {
   const { id } = req.params
-  console.log('iddddd', id)
 
   User
     .findById(id)

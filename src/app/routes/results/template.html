@@ -32,7 +32,7 @@
                 <label for="option{{$index}}">{{option.option}}</label>
             </div>
             <!-- end radio option -->
-            <button class="btn voted" type="submit" name="action" onclick="Materialize.toast('Voted!', 1000)" ng-disabled="(status && allreadyVote)" ng-click="vote(options)">Vote
+            <button ng-if="status" class="btn voted" type="submit" name="action" onclick="Materialize.toast('Voted!', 1000)" ng-click="vote(options)">Vote
                 <i class="material-icons right">send</i>
             </button>
             <div class="title-results-style">

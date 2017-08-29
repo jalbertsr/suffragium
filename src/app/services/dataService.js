@@ -26,12 +26,18 @@ const getData = ($http) => {
     return $http.get(url)
   }
 
+  const deletePoll = (id) => {
+    const url = `/api/privateArea/${id}`
+    return $http.delete(url)
+  }
+
   return {
     getInfoPoll,
     vote,
     getPolls,
     updateStatus,
-    getUserPolls
+    getUserPolls,
+    deletePoll
   }
 }
 

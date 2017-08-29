@@ -29,27 +29,27 @@ function privateAreaController ($scope, $routeParams, dataService) {
   }
 
   $scope.updateStatus = (statusData) => {
-    const status = statusData.status
-    const id = statusData.id
+    const status = statusData.pollInfo.status
+    const id = statusData._id
     dataService.updateStatus(id, status)
       .then(console.log)
       .catch(console.log)
   }
 
   $scope.deletePoll = ($event) => {
-    console.log($event.currentTarget.parentNode)
+    const pollIdToDelete = $event.currentTarget.parentNode.getAttribute('id')
     $event.currentTarget.parentNode.remove()
-    // dataService.deletePoll(id)
-    //   .then(console.log)
-    //   .catch(console.log)
+    dataService.deletePoll(pollIdToDelete)
+      .then(console.log)
+      .catch(console.log)
   }
 
   /* -------- LOAD USER POLLS API -------- */
 
   dataService.getUserPolls($scope.userID)
     .then((response) => {
-      $scope.userPolls = response.data.ownedPolls.uid
-      console.log(response)
+      $scope.userPolls = response.data.ownedPolls
+      console.log($scope.userPolls)
     })
     .catch(console.log)
 }

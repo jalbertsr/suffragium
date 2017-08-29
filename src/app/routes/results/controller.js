@@ -12,7 +12,7 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
   let myChart
   let saveCount = 0
   let dataOptions
-  $scope.allreadyVote = false
+  $scope.allreadyVote = true
   $scope.currentChart = 'bar'
 
   /* -------- SOCKET UPDATE ALL ----------- */
@@ -156,7 +156,7 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
     }
     // emit vote
     socket.emit('newVote', {'voto': 'click'})
-    $scope.allreadyVote = true
+    $scope.allreadyVote = false
     console.log($scope.allreadyVote)
   }
 
