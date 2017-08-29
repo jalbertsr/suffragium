@@ -59206,7 +59206,7 @@ angular.module('suffragium', [angularRoute])
   .config(resultsConfing)
   .factory('dataService', dataService)
 
-},{"./routes/home/controller":101,"./routes/home/index":102,"./routes/login/controller":103,"./routes/login/index":104,"./routes/privateArea/controller":105,"./routes/privateArea/index":106,"./routes/register/controller":107,"./routes/register/index":108,"./routes/results/controller":109,"./routes/results/index":110,"./services/dataService":111,"angular":5,"angular-route":3}],101:[function(require,module,exports){
+},{"./routes/home/controller":101,"./routes/home/index":102,"./routes/login/controller":103,"./routes/login/index":104,"./routes/privateArea/controller":105,"./routes/privateArea/index":106,"./routes/register/controller":107,"./routes/register/index":108,"./routes/results/controller":111,"./routes/results/index":112,"./services/dataService":113,"angular":5,"angular-route":3}],101:[function(require,module,exports){
 'use strict'
 
 function homeController ($scope, dataService) {
@@ -59354,14 +59354,112 @@ function registerConfig ($routeProvider) {
 module.exports = registerConfig
 
 },{"path":87}],109:[function(require,module,exports){
+module.exports=["rgba(54, 162, 235, 0.3)", 
+"rgba(255, 99, 132, 0.3)", 
+"rgba(255, 206, 86, 0.3)", 
+"rgba(75, 192, 192, 0.3)", 
+"rgba(153, 102, 255, 0.3)", 
+"rgba(255, 159, 64, 0.3)",
+"rgba(255,160,122,0.3)",
+"rgba(255,69,0,0.3)",
+"rgba(255,140,0,0.3)",
+"rgba(255,165,0,0.3)",
+"rgba(255,215,0,0.3)",
+"rgba(184,134,11,0.3)",
+"rgba(218,165,32,0.3)",
+"rgba(238,232,170,0.3)",
+"rgba(189,183,107,0.3)",
+"rgba(240,230,140,0.3)",
+"rgba(128,128,0,0.3)",
+"rgba(255,255,0,0.3)",
+"rgba(154,205,50,0.3)",
+"rgba(85,107,47,0.3)",
+"rgba(107,142,35,0.3)",
+"rgba(124,252,0,0.3)",
+"rgba(127,255,0,0.3)",
+"rgba(173,255,47,0.3)",
+"rgba(0,100,0,0.3)",
+"rgba(0,128,0,0.3)",
+"rgba(50,205,50,0.3)",
+"rgba(144,238,144,0.3)",
+"rgba(152,251,152,0.3)",
+"rgba(143,188,143,0.3)",
+"rgba(0,250,154,0.3)",
+"rgba(46,139,87,0.3)",
+"rgba(102,205,170,0.3)",
+"rgba(60,179,113,0.3)",
+"rgba(32,178,170,0.3)",
+"rgba(47,79,79,0.3)",
+"rgba(0,128,128,0.3)",
+"rgba(0,139,139,0.3)",
+"rgba(0,255,255,0.3)",
+"rgba(0,255,255,0.3)",
+"rgba(224,255,255,0.3)",
+"rgba(0,206,209,0.3)",
+"rgba(64,224,208,0.3)",
+"rgba(72,209,204,0.3)",
+"rgba(175,238,238,0.3)",
+"rgba(127,255,212,0.3)",
+"rgba(176,224,230,0.3)",
+"rgba(95,158,160,0.3)"]
+},{}],110:[function(require,module,exports){
+module.exports=["rgba(54, 162, 235, 1)", 
+"rgba(255, 99, 132, 1)", 
+"rgba(255, 206, 86, 1)", 
+"rgba(75, 192, 192, 1)", 
+"rgba(153, 102, 255, 1)", 
+"rgba(255, 159, 64, 1)",
+"rgba(255,160,122,1)",
+"rgba(255,69,0,1)",
+"rgba(255,140,0,1)",
+"rgba(255,165,0,1)",
+"rgba(255,215,0,1)",
+"rgba(184,134,11,1)",
+"rgba(218,165,32,1)",
+"rgba(238,232,170,1)",
+"rgba(189,183,107,1)",
+"rgba(240,230,140,1)",
+"rgba(128,128,0,1)",
+"rgba(255,255,0,1)",
+"rgba(154,205,50,1)",
+"rgba(85,107,47,1)",
+"rgba(107,142,35,1)",
+"rgba(124,252,0,1)",
+"rgba(127,255,0,1)",
+"rgba(173,255,47,1)",
+"rgba(0,100,0,1)",
+"rgba(0,128,0,1)",
+"rgba(50,205,50,1)",
+"rgba(144,238,144,1)",
+"rgba(152,251,152,1)",
+"rgba(143,188,143,1)",
+"rgba(0,250,154,1)",
+"rgba(46,139,87,1)",
+"rgba(102,205,170,1)",
+"rgba(60,179,113,1)",
+"rgba(32,178,170,1)",
+"rgba(47,79,79,1)",
+"rgba(0,128,128,1)",
+"rgba(0,139,139,1)",
+"rgba(0,255,255,1)",
+"rgba(0,255,255,1)",
+"rgba(224,255,255,1)",
+"rgba(0,206,209,1)",
+"rgba(64,224,208,1)",
+"rgba(72,209,204,1)",
+"rgba(175,238,238,1)",
+"rgba(127,255,212,1)",
+"rgba(176,224,230,1)",
+"rgba(95,158,160,1)"]
+},{}],111:[function(require,module,exports){
 /* global angular */
 'use strict'
 
+const backgroundColor = require('./colors/backgroundColors.json')
+const borderColor = require('./colors/borderColors.json')
 const FileSaver = require('file-saver')
 const Chart = require('chart.js')
 const socket = require('socket.io-client').connect({'force new connection': true})
-const backgroundColor = ['rgba(54, 162, 235, 0.3)', 'rgba(255, 99, 132, 0.3)', 'rgba(255, 206, 86, 0.3)', 'rgba(75, 192, 192, 0.3)', 'rgba(153, 102, 255, 0.3)', 'rgba(255, 159, 64, 0.3)']
-const borderColor = ['rgba(54, 162, 235, 1)', 'rgba(255,99,132, 1)', 'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)']
 
 function resultsController ($scope, $rootScope, $routeParams, dataService) {
   const { id } = $routeParams
@@ -59620,7 +59718,7 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
 
 module.exports = resultsController
 
-},{"chart.js":11,"file-saver":77,"socket.io-client":89}],110:[function(require,module,exports){
+},{"./colors/backgroundColors.json":109,"./colors/borderColors.json":110,"chart.js":11,"file-saver":77,"socket.io-client":89}],112:[function(require,module,exports){
 const path = require('path')
 
 const htmlResults = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container-results\">\n    <div class=\"row\">\n        <div class=\"row col s11 l4 offset-l1 container-question\">\n            <p class=\"title-results-style title-size\">{{question}}</p>\n            <!-- begin checkbox option -->\n            <div ng-if=\"allowMoreThanOne\" class=\"container space\" ng-repeat=\"option in options\" id=\"{{option._id}}\">\n                <input type=\"checkbox\" id=\"option{{$index}}\" ng-model=\"option.selected\" ng-true-value=\"'{{option._id}}'\" ng-false-value=\"false\" >\n                <label for=\"option{{$index}}\">{{option.option}}</label>\n            </div>\n            <!-- end checkbox option -->\n             <!-- begin radio option -->\n            <div ng-if=\"!allowMoreThanOne\" class=\"container space\" ng-repeat=\"option in options\" id=\"{{option._id}}\">\n                <input class=\"with-gap\" type=\"radio\" id=\"option{{$index}}\" name=\"radio\" ng-model=\"changedVal\" value=\"{{$index}}\" ng-checked=\"false\" ng-click=\"getVal(option._id)\">\n                <label for=\"option{{$index}}\">{{option.option}}</label>\n            </div>\n            <!-- end radio option -->\n            <button ng-if=\"status\" class=\"btn voted\" type=\"submit\" name=\"action\" onclick=\"Materialize.toast('Voted!', 1000)\" ng-click=\"vote(options)\">Vote\n                <i class=\"material-icons right\">send</i>\n            </button>\n            <div class=\"title-results-style\">\n                <p class=\"info-results\">Total Votes: {{totalVotes}}</p>\n                <p>Status: {{status ? 'Open' : 'Closed'}}</p>\n            </div>\n        </div>\n        <div class=\"col s11 l6 row container-graph\">\n            <canvas class=\"canvas-graph-style\" height=\"120\" width=\"230\" id=\"myChart\"></canvas>\n            <div class=\"input-field col s6\">\n                <select ng-change=\"changeChart(chartType)\" ng-model=\"chartType\">\n                  <option value=\"\" disabled>Choose Chart</option>\n                  <option value=\"bar\">Bar Chart</option>\n                  <option value=\"horizontalBar\">Horitzontal Bar Chart</option>\n                  <option value=\"line\">Line Chart</option>\n                  <option value=\"doughnut\">Doughnut Chart</option>\n                  <option value=\"pie\">Pie Chart</option>\n                </select>\n            </div>\n            <div class=\"col offset-s3 s3 save-button\">\n                <button class=\"btn voted\" ng-click=\"saveChart()\" name=\"action\" onclick=\"Materialize.toast('Saved!', 1000)\">Save\n                    <i class=\"material-icons right\">file_download</i>\n                </button>\n            </div>\n        </div>\n    </div>\n</div>"
@@ -59635,7 +59733,7 @@ function resultsConfig ($routeProvider) {
 
 module.exports = resultsConfig
 
-},{"path":87}],111:[function(require,module,exports){
+},{"path":87}],113:[function(require,module,exports){
 'use strict'
 
 const getData = ($http) => {
