@@ -1,12 +1,14 @@
 'use strict'
 
-function privateAreaController ($scope, dataService) {
+function privateAreaController ($scope, $routeParams, dataService) {
   const modal = document.getElementById('info-modal')
   const btn = document.getElementById('info-activate')
   const btnClose = document.getElementById('btnClose')
   const addOption = document.getElementById('addOption')
 
   let optionNumber = 3
+  $scope.userID = $routeParams.id
+  console.log($scope.userID)
 
   btn.onclick = function () {
     modal.style.display = 'block'
@@ -34,7 +36,7 @@ function privateAreaController ($scope, dataService) {
       .catch(console.log)
   }
 
-  $scope.deletePoll = function ($event) {
+  $scope.deletePoll = ($event) => {
     console.log($event.currentTarget.parentNode)
     $event.currentTarget.parentNode.remove()
     // dataService.deletePoll(id)
@@ -42,23 +44,14 @@ function privateAreaController ($scope, dataService) {
     //   .catch(console.log)
   }
 
-  /* -------- FALSE DATA FOR TEST -------- */
+  /* -------- LOAD USER POLLS API -------- */
 
-  $scope.polls = [{
-    question: 'Favourite frontend freamwork?',
-    _id: '327462349237498724',
-    status: true
-  },
-  {
-    question: 'Favourite backend freamwork?',
-    _id: '321111111137498724',
-    status: false
-  },
-  {
-    question: 'Favourite pizza?',
-    _id: '327462123412312344',
-    status: true
-  }]
+  dataService.getUserPolls($scope.userID)
+    .then((response) => {
+      $scope.userPolls = response.data.ownedPolls.uid
+      console.log(response)
+    })
+    .catch(console.log)
 }
 
 module.exports = privateAreaController

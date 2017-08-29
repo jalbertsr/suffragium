@@ -21,11 +21,17 @@ const getData = ($http) => {
     return $http.put(url)
   }
 
+  const getUserPolls = (id) => {
+    const url = `/api/infoUser/${id}`
+    return $http.get(url)
+  }
+
   return {
     getInfoPoll,
     vote,
     getPolls,
-    updateStatus
+    updateStatus,
+    getUserPolls
   }
 }
 

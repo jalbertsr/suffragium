@@ -17,6 +17,7 @@
 <div class="container row create-poll">
     <div class="col l6 offset-s2 s9">
         <form class="form-register" name="poll" action="/privateArea/" method="POST" novalidate>
+            <input type="hidden" name="userID" value="{{userID}}">
             <p class="title-create-style  create-poll-title">Create your poll</p>
             <div class="input-field col s8">
                 <input class="input-border-color" id="question" ng-model="question" type="text" name="question" class="validate" required>

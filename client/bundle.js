@@ -59260,13 +59260,15 @@ module.exports = configLogin
 },{"path":87}],105:[function(require,module,exports){
 'use strict'
 
-function privateAreaController ($scope, dataService) {
+function privateAreaController ($scope, $routeParams, dataService) {
   const modal = document.getElementById('info-modal')
   const btn = document.getElementById('info-activate')
   const btnClose = document.getElementById('btnClose')
   const addOption = document.getElementById('addOption')
 
   let optionNumber = 3
+  $scope.userID = $routeParams.id
+  console.log($scope.userID)
 
   btn.onclick = function () {
     modal.style.display = 'block'
@@ -59294,7 +59296,7 @@ function privateAreaController ($scope, dataService) {
       .catch(console.log)
   }
 
-  $scope.deletePoll = function ($event) {
+  $scope.deletePoll = ($event) => {
     console.log($event.currentTarget.parentNode)
     $event.currentTarget.parentNode.remove()
     // dataService.deletePoll(id)
@@ -59302,23 +59304,14 @@ function privateAreaController ($scope, dataService) {
     //   .catch(console.log)
   }
 
-  /* -------- FALSE DATA FOR TEST -------- */
+  /* -------- LOAD USER POLLS API -------- */
 
-  $scope.polls = [{
-    question: 'Favourite frontend freamwork?',
-    _id: '327462349237498724',
-    status: true
-  },
-  {
-    question: 'Favourite backend freamwork?',
-    _id: '321111111137498724',
-    status: false
-  },
-  {
-    question: 'Favourite pizza?',
-    _id: '327462123412312344',
-    status: true
-  }]
+  dataService.getUserPolls($scope.userID)
+    .then((response) => {
+      $scope.userPolls = response.data.ownedPolls.uid
+      console.log(response)
+    })
+    .catch(console.log)
 }
 
 module.exports = privateAreaController
@@ -59326,11 +59319,11 @@ module.exports = privateAreaController
 },{}],106:[function(require,module,exports){
 const path = require('path')
 
-const htmlPrivateArea = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/\">Logout</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/\">Logout</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row create-poll\">\n    <div class=\"col l6 offset-s2 s9\">\n        <form class=\"form-register\" name=\"poll\" action=\"/privateArea/\" method=\"POST\" novalidate>\n            <p class=\"title-create-style  create-poll-title\">Create your poll</p>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"question\" ng-model=\"question\" type=\"text\" name=\"question\" class=\"validate\" required>\n                <label for=\"question\">Type your question here</label>\n            </div>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"option1\" ng-model=\"option1\" type=\"text\" name=\"option1\" required>\n                <label for=\"option1\">Option 1</label>\n            </div>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"option2\" ng-model=\"option2\" type=\"text\" name=\"option2\" required>\n                <label for=\"option2\">Option 2</label>\n            </div>\n            <div class=\"add-margin  input-field col s8\">\n                <span id=\"addOption\" class=\"info-pointer\"><i class=\"material-icons info-icon\">add</i><label class=\" info-pointer label-add\">Add another option</label></span>\n            </div>\n            <div class=\"add-margin input-field col s8\">\n                <p>Allow multiple poll answers:</p>\n                <div class=\"switch\">\n                    <label class=\"multiple-vote-space\">\n                        No\n                        <input type=\"checkbox\" name=\"allowMoreThanOne\">\n                        <span class=\"lever\"></span> Yes\n                    </label>\n                </div>\n            </div>\n            <div class=\"input-field duplicaton-top-space col s8 row\">\n                <div class=\"select-duplication col s11\">\n                    <select name=\"duplicationChecking\">\n                        <option value=\"none\" disabled selected>Choose checking option:</option>\n                        <option value=\"none\">No Duplication Checking</option>\n                        <option value=\"login\">Login Duplication Checking </option>\n                        <option value=\"cookie\">Cookie Browser Duplication Checking</option>\n                        <option value=\"ip\">IP Duplication Checking</option>\n                    </select>\n                </div>\n                <div class=\"col s1\">\n                    <span id=\"info-activate\" class=\"info-pointer\">\n                        <a><i class=\"material-icons info-icon\">info_outline</i></a>\n                    </span>\n                </div>\n            </div>\n            <div class=\"select-duplication col s8\">\n                <button onclick=\"Materialize.toast('Poll created!', 1000)\" ng-disabled=\"form-poll.$invalid || form-register.$pending\" class=\"btn voted btn-poll\">Create Poll\n                    <i class=\"material-icons right\">send</i>\n                </button>\n            </div>\n        </form>\n        <!-- begin info modal -->\n        <div id=\"info-modal\" class=\"modal\">\n            <div class=\"modal-content\">\n                <h4 class=\"modal-title\">Duplication Checking Info</h4>\n                <p><strong>IP Duplication Checking</strong> - Duplicate votes will be disallowed based on the IP address of the user.</p>\n                <p><strong>Browser Cookie Duplication Checking</strong> - Duplicate votes will be disallowed based on the browser of the user, allowing multiple votes from the same IP address.</p>\n                <p><strong>No Duplication Checking</strong> - Duplication checking will be disabled and users can vote as many times as they would like.</p>\n                <p><strong>Require User Sign In to Vote</strong> - Voting is not allowed unless the voter is signed into their Suffragium account.</p>\n            </div>\n            <div class=\"modal-footer\">\n                <span><a id=\"btnClose\" class=\"modal-action btn-flat\">Ok</a></span>\n            </div>\n        </div>\n        <!-- end info modal -->\n    </div>\n    <!-- begin my polls -->\n    <div class=\"col l5 offset-l1 offset-s2 s9\">\n        <p class=\"title-create-style owned-polls\"> My polls </p>\n        <div class=\"personal-polls row\" ng-repeat=\"poll in polls\" id=\"{{poll._id}}\">\n            <a href=\"#!/poll/{{poll._id}}\">\n                <p class=\"question-own-poll\">{{poll.question}}</p>\n            </a>\n            <div class=\"switch col l8 s8\">\n                <label>\n                    Close\n                    <input type=\"checkbox\" ng-change=\"updateStatus(poll)\" ng-model=\"poll.status\" ng-checked=\"{{poll.status}}\">\n                    <span class=\"lever\"></span> Open\n                </label>\n            </div>\n            <div class=\"col l4 s4\" ng-click=\"deletePoll($event)\">\n                <span class=\"info-icon info-pointer\"><i class=\"material-icons\">delete</i></span>\n            </div>\n        </div>\n    </div>\n    <!-- end my polls -->\n</div>"
+const htmlPrivateArea = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/\">Logout</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/\">Logout</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row create-poll\">\n    <div class=\"col l6 offset-s2 s9\">\n        <form class=\"form-register\" name=\"poll\" action=\"/privateArea/\" method=\"POST\" novalidate>\n            <input type=\"hidden\" name=\"userID\" value=\"{{userID}}\">\n            <p class=\"title-create-style  create-poll-title\">Create your poll</p>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"question\" ng-model=\"question\" type=\"text\" name=\"question\" class=\"validate\" required>\n                <label for=\"question\">Type your question here</label>\n            </div>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"option1\" ng-model=\"option1\" type=\"text\" name=\"option1\" required>\n                <label for=\"option1\">Option 1</label>\n            </div>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"option2\" ng-model=\"option2\" type=\"text\" name=\"option2\" required>\n                <label for=\"option2\">Option 2</label>\n            </div>\n            <div class=\"add-margin  input-field col s8\">\n                <span id=\"addOption\" class=\"info-pointer\"><i class=\"material-icons info-icon\">add</i><label class=\" info-pointer label-add\">Add another option</label></span>\n            </div>\n            <div class=\"add-margin input-field col s8\">\n                <p>Allow multiple poll answers:</p>\n                <div class=\"switch\">\n                    <label class=\"multiple-vote-space\">\n                        No\n                        <input type=\"checkbox\" name=\"allowMoreThanOne\">\n                        <span class=\"lever\"></span> Yes\n                    </label>\n                </div>\n            </div>\n            <div class=\"input-field duplicaton-top-space col s8 row\">\n                <div class=\"select-duplication col s11\">\n                    <select name=\"duplicationChecking\">\n                        <option value=\"none\" disabled selected>Choose checking option:</option>\n                        <option value=\"none\">No Duplication Checking</option>\n                        <option value=\"login\">Login Duplication Checking </option>\n                        <option value=\"cookie\">Cookie Browser Duplication Checking</option>\n                        <option value=\"ip\">IP Duplication Checking</option>\n                    </select>\n                </div>\n                <div class=\"col s1\">\n                    <span id=\"info-activate\" class=\"info-pointer\">\n                        <a><i class=\"material-icons info-icon\">info_outline</i></a>\n                    </span>\n                </div>\n            </div>\n            <div class=\"select-duplication col s8\">\n                <button onclick=\"Materialize.toast('Poll created!', 1000)\" ng-disabled=\"form-poll.$invalid || form-register.$pending\" class=\"btn voted btn-poll\">Create Poll\n                    <i class=\"material-icons right\">send</i>\n                </button>\n            </div>\n        </form>\n        <!-- begin info modal -->\n        <div id=\"info-modal\" class=\"modal\">\n            <div class=\"modal-content\">\n                <h4 class=\"modal-title\">Duplication Checking Info</h4>\n                <p><strong>IP Duplication Checking</strong> - Duplicate votes will be disallowed based on the IP address of the user.</p>\n                <p><strong>Browser Cookie Duplication Checking</strong> - Duplicate votes will be disallowed based on the browser of the user, allowing multiple votes from the same IP address.</p>\n                <p><strong>No Duplication Checking</strong> - Duplication checking will be disabled and users can vote as many times as they would like.</p>\n                <p><strong>Require User Sign In to Vote</strong> - Voting is not allowed unless the voter is signed into their Suffragium account.</p>\n            </div>\n            <div class=\"modal-footer\">\n                <span><a id=\"btnClose\" class=\"modal-action btn-flat\">Ok</a></span>\n            </div>\n        </div>\n        <!-- end info modal -->\n    </div>\n    <!-- begin my polls -->\n    <div class=\"col l5 offset-l1 offset-s2 s9\">\n        <p class=\"title-create-style owned-polls\"> My polls </p>\n        <div class=\"personal-polls row\" ng-repeat=\"poll in polls\" id=\"{{poll._id}}\">\n            <a href=\"#!/poll/{{poll._id}}\">\n                <p class=\"question-own-poll\">{{poll.question}}</p>\n            </a>\n            <div class=\"switch col l8 s8\">\n                <label>\n                    Close\n                    <input type=\"checkbox\" ng-change=\"updateStatus(poll)\" ng-model=\"poll.status\" ng-checked=\"{{poll.status}}\">\n                    <span class=\"lever\"></span> Open\n                </label>\n            </div>\n            <div class=\"col l4 s4\" ng-click=\"deletePoll($event)\">\n                <span class=\"info-icon info-pointer\"><i class=\"material-icons\">delete</i></span>\n            </div>\n        </div>\n    </div>\n    <!-- end my polls -->\n</div>"
 
 function privateAreaConfig ($routeProvider) {
   $routeProvider
-    .when('/username', { // add /:username
+    .when('/username/:id', {
       template: htmlPrivateArea,
       controller: 'privateAreaController'
     })
@@ -59666,11 +59659,17 @@ const getData = ($http) => {
     return $http.put(url)
   }
 
+  const getUserPolls = (id) => {
+    const url = `/api/infoUser/${id}`
+    return $http.get(url)
+  }
+
   return {
     getInfoPoll,
     vote,
     getPolls,
-    updateStatus
+    updateStatus,
+    getUserPolls
   }
 }
 

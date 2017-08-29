@@ -4,7 +4,7 @@ const htmlPrivateArea = fs.readFileSync(path.join(__dirname, '/template.html'), 
 
 function privateAreaConfig ($routeProvider) {
   $routeProvider
-    .when('/username', { // add /:username
+    .when('/username/:id', {
       template: htmlPrivateArea,
       controller: 'privateAreaController'
     })
