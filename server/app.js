@@ -32,7 +32,8 @@ app.use(cookieSession({
 
 app.use((req, res, next) => {
   // console.log('use middleware', req)
-  console.log(req.ip)
+  // req.ip
+  console.log('use middleware', req.session)
   req.session.votes = req.session.votes || []
   next()
 })
@@ -44,5 +45,7 @@ const server = app.listen(PORT)
 configSocket(server, app)
 
 app.use(routes)
+
+// app.set('trust proxy', true)
 
 console.log(`Listening on PORT ${PORT}`)
