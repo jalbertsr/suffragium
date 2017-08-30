@@ -6,7 +6,9 @@ const handleVote = (req, res) => {
   const io = req.app.locals.io
 
   req.session.votes.push(pollId)
+  req.session.counter++
   console.log('handleVote', req.session.votes)
+  console.log('counter', req.session.counter)
 
   for (let voteId of numVoteOptions) {
     Poll.update({ _id: pollId, 'options._id': voteId }, {$inc: {'options.$.votes': 1}})

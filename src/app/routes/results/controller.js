@@ -5,7 +5,7 @@ const backgroundColor = require('./colors/backgroundColors.json')
 const borderColor = require('./colors/borderColors.json')
 const FileSaver = require('file-saver')
 const Chart = require('chart.js')
-const socket = require('socket.io-client').connect({'force new connection': true})
+const socket = require('socket.io-client').connect({'force new connection': false})
 
 function resultsController ($scope, $rootScope, $routeParams, dataService) {
   const { id } = $routeParams
