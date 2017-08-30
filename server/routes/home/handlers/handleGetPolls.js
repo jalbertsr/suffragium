@@ -5,7 +5,7 @@ const handleGetPolls = (req, res) => {
     .find()
     .limit(6)
     .then((info) => {
-      console.info('poll find ok', info)
+      // console.info('poll find ok', info)
       res.json(info)
     })
     .catch((err) => {

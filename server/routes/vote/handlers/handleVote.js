@@ -6,13 +6,12 @@ const handleVote = (req, res) => {
   const io = req.app.locals.io
 
   req.session.votes.push(pollId)
-  req.session.counter++
-  console.log('handleVote', req.session.votes)
-  console.log('counter', req.session.counter)
+  // console.log('handleVote', req.session)
 
   for (let voteId of numVoteOptions) {
     Poll.update({ _id: pollId, 'options._id': voteId }, {$inc: {'options.$.votes': 1}})
     .then(() => {
+      req.session.save()
       io.emit('updateInfo', pollId)
       res.status(200)
     })
@@ -20,7 +19,11 @@ const handleVote = (req, res) => {
   }
 
   Poll.findByIdAndUpdate(pollId, {$inc: {'pollInfo.totalVotes': 1}})
-    .then(() => res.status(200))
+    .then(() => {
+      req.session.save()
+      // console.log('then', req.session)
+      res.status(200)
+    })
     .catch(() => res.send(`FAIL!! Poll w/ id ${pollId} cound't update total votes`))
 }
 

@@ -4,6 +4,7 @@ const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const cookieSession = require('cookie-session')
 const app = express()
+// const ipfilter = require('express-ipfilter').IpFilter
 
 const routes = require('./routes/')
 
@@ -24,22 +25,24 @@ app.use(bodyParser.json())
 app.use(cookieSession({
   name: 'CookieVotes',
   keys: [secretKey],
-  maxAge: 7 * 24 * 60 * 60 * 1000
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  cookie: { secure: false },
+  resave: true
 }))
 
 app.use((req, res, next) => {
-  console.log('use middleware', req.session)
+  // console.log('use middleware', req)
+  console.log(req.ip)
   req.session.votes = req.session.votes || []
-  req.session.counter = req.session.counter || 0
   next()
 })
 
-app.use(routes)
+const configSocket = require('./socketio/configSocket.js')
 
 const server = app.listen(PORT)
 
-const configSocket = require('./socketio/configSocket.js')
-
 configSocket(server, app)
+
+app.use(routes)
 
 console.log(`Listening on PORT ${PORT}`)
