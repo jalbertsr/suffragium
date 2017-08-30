@@ -15,7 +15,7 @@ const handleVote = (req, res) => {
   }
 
   Poll.findByIdAndUpdate(pollId, {$inc: {'pollInfo.totalVotes': 1}})
-    .then(() => res.send(req.session))
+    .then(() => res.status(200).send(req.session))
     .catch(() => res.send(`FAIL!! Poll w/ id ${pollId} cound't update total votes`))
 
   io.emit('updateInfo', pollId)
