@@ -224,7 +224,7 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
     // const imgBase64 = setTimeout(function () {
     //   const graphUrl = ctx.toDataURL()
     //   console.log(graphUrl)
-    // }, 1000)
+    // }, 60000)
   }
 
   /* --------------- DEFAULT BAR CHART ---------------- */
