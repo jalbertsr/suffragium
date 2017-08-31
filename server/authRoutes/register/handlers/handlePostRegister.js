@@ -1,17 +1,17 @@
 const User = require('../../../models/user.js')
 
 const handlePostRegister = (req, res) => {
-  const { username, password } = req.body
+  const { email, password } = req.body
 
-  const account = new User({ username })
+  const account = new User({ email })
 
   const id = account._id
 
   User.register(account, password, err => {
     if (err) {
-      return res.status(500).send('Not authorized')
+      res.redirect(`/register/`)
     }
-    res.redirect(`!#/usrname/${id}`)
+    res.redirect(`/#!/username/${id}`)
   })
 }
 

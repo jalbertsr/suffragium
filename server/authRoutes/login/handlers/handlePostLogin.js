@@ -1,12 +1,12 @@
 const jwt = require('jsonwebtoken')
 
 const handlePostLogin = (req, res) => {
-  const SECRET = process.env.SECRET
-  const { _id: id, username } = req.user
+  const SECRET = process.env.SECRET || 'SECRET'
+  const { _id: id, email } = req.user
+  console.log(req.user)
+  jwt.sign({ id, email }, SECRET)
 
-  const token = jwt.sign({ id, username }, SECRET)
-
-  res.json({success: true, token: token})
+  res.redirect(`/#!/username/${id}`)
 }
 
 module.exports = handlePostLogin

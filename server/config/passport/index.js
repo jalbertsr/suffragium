@@ -6,7 +6,10 @@ const jwtStrategy = require('./strategies/jwt')
 
 const User = require('../../models/user')
 
-passport.use(new LocalStrategy(User.authenticate()))
+passport.use(new LocalStrategy({
+  usernameField: 'email'
+}, User.authenticate()))
+
 passport.use(jwtStrategy)
 
 module.exports = passport

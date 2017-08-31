@@ -4,10 +4,6 @@ const ObjectId = mongoose.Schema.Types.ObjectId
 const collection = 'user'
 
 const UserSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: true
-  },
   ownedPolls: [{
     uid: {
       type: ObjectId,
@@ -16,6 +12,11 @@ const UserSchema = new mongoose.Schema({
   }]
 }, { collection })
 
-UserSchema.plugin(passportLocalMongoose)
+const options = {
+  usernameField: 'email',
+  usernameLowerCase: true
+}
+
+UserSchema.plugin(passportLocalMongoose, (options))
 
 module.exports = mongoose.model('User', UserSchema)

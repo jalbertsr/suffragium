@@ -11,6 +11,8 @@ const passport = require('./config/passport')
 const authRoutes = require('./authRoutes/')
 const routes = require('./routes/')
 
+require('dotenv').load()
+
 const urlDb = process.env.urlDb || 'mongodb://localhost:27017/polls'
 const PORT = process.env.PORT || 3002
 
