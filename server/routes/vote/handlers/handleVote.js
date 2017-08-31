@@ -9,16 +9,19 @@ const handleVote = (req, res) => {
 
   console.log('handleVote', req.session)
 
-  for (let voteId of numVoteOptions) {
-    Poll.update({ _id: pollId, 'options._id': voteId }, {$inc: {'options.$.votes': 1}})
-    .catch(() => res.send(`FAIL!! Poll w/ id ${pollId} cound't update vote with id ${voteId}`))
-  }
+  const promises = numVoteOptions.map((voteId) => {
+    return Poll.update({ _id: pollId, 'options._id': voteId }, {$inc: {'options.$.votes': 1}})
+  })
 
-  Poll.findByIdAndUpdate(pollId, {$inc: {'pollInfo.totalVotes': 1}})
-    .then(() => res.status(200).send(req.session))
-    .catch(() => res.send(`FAIL!! Poll w/ id ${pollId} cound't update total votes`))
-
-  io.emit('updateInfo', pollId)
+  Promise
+    .all(promises)
+    .then(() => {
+      Poll.findByIdAndUpdate(pollId, {$inc: {'pollInfo.totalVotes': 1}})
+        .then(() => {
+          io.emit('updateInfo', pollId)
+          res.status(200).send(req.session)
+        })
+    })
 }
 
 module.exports = handleVote
