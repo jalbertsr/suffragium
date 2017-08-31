@@ -59719,7 +59719,7 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
       options: options
     })
     clearTimeout(initialGraph)
-  }, 500)
+  }, 800)
 }
 
 const truncateString = (initialString) => {
