@@ -49,7 +49,9 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
       case 'bar':
         Chart.defaults.global.legend.display = false
         let data = {
-          labels: $scope.chartOptions,
+          labels: $scope.chartOptions.map((option) => {
+            return truncateString(option)
+          }),
           datasets: [{
             label: '',
             data: $scope.chartVotes,
@@ -173,7 +175,9 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
       case 'bar':
         Chart.defaults.global.legend.display = false
         let data = {
-          labels: $scope.chartOptions,
+          labels: $scope.chartOptions.map((option) => {
+            return truncateString(option)
+          }),
           datasets: [{
             label: '',
             data: $scope.chartVotes,
@@ -233,7 +237,9 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
     Chart.defaults.global.legend.display = false
 
     let data = {
-      labels: $scope.chartOptions,
+      labels: $scope.chartOptions.map((option) => {
+        return truncateString(option)
+      }),
       datasets: [{
         label: '',
         data: $scope.chartVotes,
@@ -260,6 +266,14 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
     })
     clearTimeout(initialGraph)
   }, 500)
+}
+
+const truncateString = (initialString) => {
+  if (initialString.length > 12) {
+    const shortString = initialString.substring(0, 12)
+    return shortString + '...'
+  }
+  return initialString
 }
 
 module.exports = resultsController
