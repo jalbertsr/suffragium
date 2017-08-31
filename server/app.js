@@ -1,11 +1,14 @@
 const express = require('express')
+// const dotenv = require('dotenv')
 const path = require('path')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const cookieSession = require('cookie-session')
 const app = express()
-// const ipfilter = require('express-ipfilter').IpFilter
 
+const passport = require('./config/passport')
+
+const authRoutes = require('./authRoutes/')
 const routes = require('./routes/')
 
 const urlDb = process.env.urlDb || 'mongodb://localhost:27017/polls'
@@ -46,6 +49,9 @@ const server = app.listen(PORT)
 
 configSocket(server, app)
 
+app.use(passport.initialize())
+
+app.use(authRoutes)
 app.use(routes)
 
 // app.set('trust proxy', true)
