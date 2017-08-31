@@ -1,20 +1,16 @@
 const User = require('../../../models/user.js')
 
 const handlePostRegister = (req, res) => {
-  const {email, password} = req.body
+  const { email, password } = req.body
 
-  const newRegsiter = {
-    email,
-    password
-  }
-  const user = new User(newRegsiter)
+  const account = new User({ email })
 
-  console.log(user)
-  const id = user._id
-
-  user.save()
-    .then(() => res.redirect(`/#!/username/${id}`))
-    .catch(() => res.send(`FAIL to create new user`))
+  User.register(account, password, err => {
+    if (err) {
+      return res.json({succes: false, msg: 'Username already exists.'})
+    }
+    res.json({succes: true, msg: 'Succesful created new user.'})
+  })
 }
 
 module.exports = handlePostRegister

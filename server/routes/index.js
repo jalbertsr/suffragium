@@ -1,11 +1,12 @@
 const express = require('express')
 const router = express.Router()
+const passport = require(__base + 'config/passport')
 
 const removePoll = require('./privateArea/handlers/handleDeletePoll')
 const getPollInfo = require('./privateArea/handlers/handlePostInfoPoll')
 const updateStatus = require('./privateArea/handlers/handleUpdateStatus')
 const getUserPolls = require('./privateArea/handlers/handleUserPolls')
-const handlePostLogin = require('./login/handlers/handlePostLogin')
+const handlelogin = require('./login/handlers/handlePostLogin')
 const handlePostRegister = require('./register/handlers/handlePostRegister')
 const infoPoll = require('./infoPoll/handlers/handleInfoPoll')
 const handleVote = require('./vote/handlers/handleVote')
@@ -16,7 +17,7 @@ router.put('/api/poll/:pollId/vote/:voteIds', checkVote, handleVote) // middlewa
 router.get('/api/infoPoll/:id', infoPoll)
 router.get('/api/getPolls/', getPolls)
 router.get('/api/infoUser/:id', getUserPolls)
-router.post('/login/', handlePostLogin)
+router.post('/login/', passport.authenticate('local', {session: false}), handlelogin)
 router.post('/register/', handlePostRegister)
 router.post('/privateArea/', getPollInfo)
 
