@@ -12,13 +12,12 @@ const handleVote = require('./vote/handlers/handleVote')
 const getPolls = require('./home/handlers/handleGetPolls')
 const checkVote = require('../middlewares/checkVote')
 
-router.put('/api/poll/:pollId/vote/:voteIds', checkVote, handleVote) // middleware gordo, cookie - ip - login - etc...
+router.put('/api/poll/:pollId/vote/:voteIds', checkVote, handleVote)
 router.get('/api/infoPoll/:id', infoPoll)
 router.get('/api/getPolls/', getPolls)
 router.get('/api/infoUser/:id', passport.authenticate('jwt', { session: false }), getUserPolls)
 router.post('/privateArea/', getPollInfo)
 
-// middleware -> usuario logeado? ->  este usario le pertenece esta encuesta? -> si/no
 router.delete('/api/privateArea/:id', passport.authenticate('jwt', { session: false }), removePoll)
 router.put('/api/privateArea/:id/:status', passport.authenticate('jwt', { session: false }), updateStatus)
 

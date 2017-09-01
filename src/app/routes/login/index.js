@@ -6,7 +6,8 @@ function configLogin ($routeProvider) {
   $routeProvider
     .when('/login', {
       template: htmlLogin,
-      controller: 'loginController'
+      controller: 'loginController',
+      controllerAs: 'vm'
     })
 }
 

@@ -26,19 +26,19 @@
                 </div>
             </div>
             <div class="s6 offset-s2">
-                <form class="form-register" method="POST" name="login" action="/login/" novalidate>
+                <form class="form-register" ng-submit="vm.login($event)" action="/login/" method="POST" novalidate>
                     <div class="input-field col s8">
-                        <input class="input-border-color" id="email" type="email" name="email" ng-model="email" class="validate" required>
+                        <input class="input-border-color" id="email" type="email" name="email" ng-model="vm.email" class="validate" required>
                         <label for="email">Email</label>
                         <p class="alert alert-danger" ng-show="form-login.email.$error.email">Your email is invalid.</p>
                     </div>
                     <div class="input-field col s8">
-                        <input class="input-border-color" id="password" type="password" name="password" ng-model="password" ng-minlength='6' class="validate" required>
+                        <input class="input-border-color" id="password" type="password" name="password" ng-model="vm.password" ng-minlength='6' class="validate" required>
                         <label for="password">Password</label>
                         <p class="alert alert-danger" ng-show="form-login.password.$error.minlength || form.password.$invalid">Your password must be at least 6 characters.</p>
                     </div>
                     <div class="space-top text-center col s8">
-                        <button onclick="Materialize.toast('Logged!', 1000)" ng-disabled="form-login.$invalid" class="waves-effect waves-light btn done default-color">
+                        <button type="submit" ng-disabled="form-login.$invalid" class="waves-effect waves-light btn done default-color">
                             <i class="material-icons left demo-color">done</i> Login
                         </button>
                     </div>
