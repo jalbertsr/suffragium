@@ -1,5 +1,4 @@
 const express = require('express')
-// const dotenv = require('dotenv')
 const path = require('path')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
@@ -36,8 +35,6 @@ app.use(cookieSession({
 }))
 
 app.use((req, res, next) => {
-  // console.log('use middleware', req)
-  // req.ip
   console.log('use middleware', req.session)
   req.session.votes = req.session.votes || []
   next()
@@ -55,7 +52,5 @@ app.use(passport.initialize())
 
 app.use(authRoutes)
 app.use(routes)
-
-// app.set('trust proxy', true)
 
 console.log(`Listening on PORT ${PORT}`)

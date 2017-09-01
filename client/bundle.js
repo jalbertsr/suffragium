@@ -29,6 +29,406 @@ function after(count, callback, err_cb) {
 function noop() {}
 
 },{}],2:[function(require,module,exports){
+(function() {
+
+
+// Create all modules and define dependencies to make sure they exist
+// and are loaded in the correct order to satisfy dependency injection
+// before all nested files are concatenated by Grunt
+
+// Modules
+angular.module('angular-jwt',
+    [
+        'angular-jwt.options',
+        'angular-jwt.interceptor',
+        'angular-jwt.jwt',
+        'angular-jwt.authManager'
+    ]);
+
+angular.module('angular-jwt.authManager', [])
+  .provider('authManager', function () {
+
+    this.$get = ["$rootScope", "$injector", "$location", "jwtHelper", "jwtInterceptor", "jwtOptions", function ($rootScope, $injector, $location, jwtHelper, jwtInterceptor, jwtOptions) {
+
+      var config = jwtOptions.getConfig();
+
+      function invokeToken(tokenGetter) {
+        var token = null;
+        if (Array.isArray(tokenGetter)) {
+          token = $injector.invoke(tokenGetter, this, {options: null});
+        } else {
+          token = tokenGetter();
+        }
+        return token;
+      }
+
+      function invokeRedirector(redirector) {
+        if (Array.isArray(redirector) || angular.isFunction(redirector)) {
+          return $injector.invoke(redirector, config, {});
+        } else {
+          throw new Error('unauthenticatedRedirector must be a function');
+        }
+      }
+
+      function isAuthenticated() {
+        var token = invokeToken(config.tokenGetter);
+        if (token) {
+          return !jwtHelper.isTokenExpired(token);
+        }
+      }
+
+      $rootScope.isAuthenticated = false;
+
+      function authenticate() {
+        $rootScope.isAuthenticated = true;
+      }
+
+      function unauthenticate() {
+        $rootScope.isAuthenticated = false;
+      }
+
+      function checkAuthOnRefresh() {
+        $rootScope.$on('$locationChangeStart', function () {
+          var token = invokeToken(config.tokenGetter);
+          if (token) {
+            if (!jwtHelper.isTokenExpired(token)) {
+              authenticate();
+            } else {
+              $rootScope.$broadcast('tokenHasExpired', token);
+            }
+          }
+        });
+      }
+
+      function redirectWhenUnauthenticated() {
+        $rootScope.$on('unauthenticated', function () {
+          invokeRedirector(config.unauthenticatedRedirector);
+          unauthenticate();
+        });
+      }
+
+      function verifyRoute(event, next) {
+        if (!next) {
+          return false;
+        }
+
+        var routeData = (next.$$route) ? next.$$route : next.data;
+
+        if (routeData && routeData.requiresLogin === true) {
+          var token = invokeToken(config.tokenGetter);
+          if (!token || jwtHelper.isTokenExpired(token)) {
+            event.preventDefault();
+            invokeRedirector(config.unauthenticatedRedirector);
+          }
+        }
+      }
+
+      var eventName = ($injector.has('$state')) ? '$stateChangeStart' : '$routeChangeStart';
+      $rootScope.$on(eventName, verifyRoute);
+
+      return {
+        authenticate: authenticate,
+        unauthenticate: unauthenticate,
+        getToken: function(){ return invokeToken(config.tokenGetter); },
+        redirect: function() { return invokeRedirector(config.unauthenticatedRedirector); },
+        checkAuthOnRefresh: checkAuthOnRefresh,
+        redirectWhenUnauthenticated: redirectWhenUnauthenticated,
+        isAuthenticated: isAuthenticated
+      }
+    }]
+  });
+
+angular.module('angular-jwt.interceptor', [])
+  .provider('jwtInterceptor', function() {
+
+    this.urlParam;
+    this.authHeader;
+    this.authPrefix;
+    this.whiteListedDomains;
+    this.tokenGetter;
+
+    var config = this;
+
+    this.$get = ["$q", "$injector", "$rootScope", "urlUtils", "jwtOptions", function($q, $injector, $rootScope, urlUtils, jwtOptions) {
+
+      var options = angular.extend({}, jwtOptions.getConfig(), config);
+
+      function isSafe (url) {
+        if (!urlUtils.isSameOrigin(url) && !options.whiteListedDomains.length) {
+          throw new Error('As of v0.1.0, requests to domains other than the application\'s origin must be white listed. Use jwtOptionsProvider.config({ whiteListedDomains: [<domain>] }); to whitelist.')
+        }
+        var hostname = urlUtils.urlResolve(url).hostname.toLowerCase();
+        for (var i = 0; i < options.whiteListedDomains.length; i++) {
+          var domain = options.whiteListedDomains[i];
+          var regexp = domain instanceof RegExp ? domain : new RegExp(domain, 'i');
+          if (hostname.match(regexp)) {
+            return true;
+          }
+        }
+
+        if (urlUtils.isSameOrigin(url)) {
+          return true;
+        }
+
+        return false;
+      }
+
+      return {
+        request: function (request) {
+          if (request.skipAuthorization || !isSafe(request.url)) {
+            return request;
+          }
+
+          if (options.urlParam) {
+            request.params = request.params || {};
+            // Already has the token in the url itself
+            if (request.params[options.urlParam]) {
+              return request;
+            }
+          } else {
+            request.headers = request.headers || {};
+            // Already has an Authorization header
+            if (request.headers[options.authHeader]) {
+              return request;
+            }
+          }
+
+          var tokenPromise = $q.when($injector.invoke(options.tokenGetter, this, {
+            options: request
+          }));
+
+          return tokenPromise.then(function(token) {
+            if (token) {
+              if (options.urlParam) {
+                request.params[options.urlParam] = token;
+              } else {
+                request.headers[options.authHeader] = options.authPrefix + token;
+              }
+            }
+            return request;
+          });
+        },
+        responseError: function (response) {
+          // handle the case where the user is not authenticated
+          if (response.status === 401) {
+            $rootScope.$broadcast('unauthenticated', response);
+          }
+          return $q.reject(response);
+        }
+      };
+    }]
+  });
+
+ angular.module('angular-jwt.jwt', [])
+  .service('jwtHelper', ["$window", function($window) {
+
+    this.urlBase64Decode = function(str) {
+      var output = str.replace(/-/g, '+').replace(/_/g, '/');
+      switch (output.length % 4) {
+        case 0: { break; }
+        case 2: { output += '=='; break; }
+        case 3: { output += '='; break; }
+        default: {
+          throw 'Illegal base64url string!';
+        }
+      }
+      return $window.decodeURIComponent(escape($window.atob(output))); //polyfill https://github.com/davidchambers/Base64.js
+    };
+
+
+    this.decodeToken = function(token) {
+      var parts = token.split('.');
+
+      if (parts.length !== 3) {
+        throw new Error('JWT must have 3 parts');
+      }
+
+      var decoded = this.urlBase64Decode(parts[1]);
+      if (!decoded) {
+        throw new Error('Cannot decode the token');
+      }
+
+      return angular.fromJson(decoded);
+    };
+
+    this.getTokenExpirationDate = function(token) {
+      var decoded = this.decodeToken(token);
+
+      if(typeof decoded.exp === "undefined") {
+        return null;
+      }
+
+      var d = new Date(0); // The 0 here is the key, which sets the date to the epoch
+      d.setUTCSeconds(decoded.exp);
+
+      return d;
+    };
+
+    this.isTokenExpired = function(token, offsetSeconds) {
+      var d = this.getTokenExpirationDate(token);
+      offsetSeconds = offsetSeconds || 0;
+      if (d === null) {
+        return false;
+      }
+
+      // Token expired?
+      return !(d.valueOf() > (new Date().valueOf() + (offsetSeconds * 1000)));
+    };
+  }]);
+
+angular.module('angular-jwt.options', [])
+  .provider('jwtOptions', function() {
+    var globalConfig = {};
+    this.config = function(value) {
+      globalConfig = value;
+    };
+    this.$get = function() {
+
+      var options = {
+        urlParam: null,
+        authHeader: 'Authorization',
+        authPrefix: 'Bearer ',
+        whiteListedDomains: [],
+        tokenGetter: function() {
+          return null;
+        },
+        loginPath: '/',
+        unauthenticatedRedirectPath: '/',
+        unauthenticatedRedirector: ['$location', function($location) {
+          $location.path(this.unauthenticatedRedirectPath);
+        }]
+      };
+
+      function JwtOptions() {
+        var config = this.config = angular.extend({}, options, globalConfig);
+      }
+
+      JwtOptions.prototype.getConfig = function() {
+        return this.config;
+      };
+
+      return new JwtOptions();
+    }
+  });
+
+ /**
+  * The content from this file was directly lifted from Angular. It is
+  * unfortunately not a public API, so the best we can do is copy it.
+  *
+  * Angular References:
+  *   https://github.com/angular/angular.js/issues/3299
+  *   https://github.com/angular/angular.js/blob/d077966ff1ac18262f4615ff1a533db24d4432a7/src/ng/urlUtils.js
+  */
+
+ angular.module('angular-jwt.interceptor')
+  .service('urlUtils', function () {
+
+    // NOTE:  The usage of window and document instead of $window and $document here is
+    // deliberate.  This service depends on the specific behavior of anchor nodes created by the
+    // browser (resolving and parsing URLs) that is unlikely to be provided by mock objects and
+    // cause us to break tests.  In addition, when the browser resolves a URL for XHR, it
+    // doesn't know about mocked locations and resolves URLs to the real document - which is
+    // exactly the behavior needed here.  There is little value is mocking these out for this
+    // service.
+    var urlParsingNode = document.createElement("a");
+    var originUrl = urlResolve(window.location.href);
+
+    /**
+     *
+     * Implementation Notes for non-IE browsers
+     * ----------------------------------------
+     * Assigning a URL to the href property of an anchor DOM node, even one attached to the DOM,
+     * results both in the normalizing and parsing of the URL.  Normalizing means that a relative
+     * URL will be resolved into an absolute URL in the context of the application document.
+     * Parsing means that the anchor node's host, hostname, protocol, port, pathname and related
+     * properties are all populated to reflect the normalized URL.  This approach has wide
+     * compatibility - Safari 1+, Mozilla 1+, Opera 7+,e etc.  See
+     * http://www.aptana.com/reference/html/api/HTMLAnchorElement.html
+     *
+     * Implementation Notes for IE
+     * ---------------------------
+     * IE <= 10 normalizes the URL when assigned to the anchor node similar to the other
+     * browsers.  However, the parsed components will not be set if the URL assigned did not specify
+     * them.  (e.g. if you assign a.href = "foo", then a.protocol, a.host, etc. will be empty.)  We
+     * work around that by performing the parsing in a 2nd step by taking a previously normalized
+     * URL (e.g. by assigning to a.href) and assigning it a.href again.  This correctly populates the
+     * properties such as protocol, hostname, port, etc.
+     *
+     * References:
+     *   http://developer.mozilla.org/en-US/docs/Web/API/HTMLAnchorElement
+     *   http://www.aptana.com/reference/html/api/HTMLAnchorElement.html
+     *   http://url.spec.whatwg.org/#urlutils
+     *   https://github.com/angular/angular.js/pull/2902
+     *   http://james.padolsey.com/javascript/parsing-urls-with-the-dom/
+     *
+     * @kind function
+     * @param {string} url The URL to be parsed.
+     * @description Normalizes and parses a URL.
+     * @returns {object} Returns the normalized URL as a dictionary.
+     *
+     *   | member name   | Description    |
+     *   |---------------|----------------|
+     *   | href          | A normalized version of the provided URL if it was not an absolute URL |
+     *   | protocol      | The protocol including the trailing colon                              |
+     *   | host          | The host and port (if the port is non-default) of the normalizedUrl    |
+     *   | search        | The search params, minus the question mark                             |
+     *   | hash          | The hash string, minus the hash symbol
+     *   | hostname      | The hostname
+     *   | port          | The port, without ":"
+     *   | pathname      | The pathname, beginning with "/"
+     *
+     */
+    function urlResolve(url) {
+      var href = url;
+
+      // Normalize before parse.  Refer Implementation Notes on why this is
+      // done in two steps on IE.
+      urlParsingNode.setAttribute("href", href);
+      href = urlParsingNode.href;
+      urlParsingNode.setAttribute('href', href);
+
+      // urlParsingNode provides the UrlUtils interface - http://url.spec.whatwg.org/#urlutils
+      return {
+        href: urlParsingNode.href,
+        protocol: urlParsingNode.protocol ? urlParsingNode.protocol.replace(/:$/, '') : '',
+        host: urlParsingNode.host,
+        search: urlParsingNode.search ? urlParsingNode.search.replace(/^\?/, '') : '',
+        hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, '') : '',
+        hostname: urlParsingNode.hostname,
+        port: urlParsingNode.port,
+        pathname: (urlParsingNode.pathname.charAt(0) === '/')
+          ? urlParsingNode.pathname
+          : '/' + urlParsingNode.pathname
+      };
+    }
+
+    /**
+     * Parse a request URL and determine whether this is a same-origin request as the application document.
+     *
+     * @param {string|object} requestUrl The url of the request as a string that will be resolved
+     * or a parsed URL object.
+     * @returns {boolean} Whether the request is for the same origin as the application document.
+     */
+    function urlIsSameOrigin(requestUrl) {
+      var parsed = (angular.isString(requestUrl)) ? urlResolve(requestUrl) : requestUrl;
+      return (parsed.protocol === originUrl.protocol &&
+              parsed.host === originUrl.host);
+    }
+
+    return {
+      urlResolve: urlResolve,
+      isSameOrigin: urlIsSameOrigin
+    };
+
+  });
+
+}());
+},{}],3:[function(require,module,exports){
+require('./dist/angular-jwt.js');
+module.exports = 'angular-jwt';
+
+
+},{"./dist/angular-jwt.js":2}],4:[function(require,module,exports){
 /**
  * @license AngularJS v1.6.6
  * (c) 2010-2017 Google, Inc. http://angularjs.org
@@ -1259,11 +1659,11 @@ function ngViewFillContentFactory($compile, $controller, $route) {
 
 })(window, window.angular);
 
-},{}],3:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 require('./angular-route');
 module.exports = 'ngRoute';
 
-},{"./angular-route":2}],4:[function(require,module,exports){
+},{"./angular-route":4}],6:[function(require,module,exports){
 /**
  * @license AngularJS v1.6.6
  * (c) 2010-2017 Google, Inc. http://angularjs.org
@@ -35153,11 +35553,11 @@ $provide.value("$locale", {
 })(window);
 
 !window.angular.$$csp().noInlineStyle && window.angular.element(document.head).prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>');
-},{}],5:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 require('./angular');
 module.exports = angular;
 
-},{"./angular":4}],6:[function(require,module,exports){
+},{"./angular":6}],8:[function(require,module,exports){
 /**
  * An abstraction for slicing an arraybuffer even when
  * ArrayBuffer.prototype.slice is not supported
@@ -35188,7 +35588,7 @@ module.exports = function(arraybuffer, start, end) {
   return result.buffer;
 };
 
-},{}],7:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 
 /**
  * Expose `Backoff`.
@@ -35275,7 +35675,7 @@ Backoff.prototype.setJitter = function(jitter){
 };
 
 
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /*
  * base64-arraybuffer
  * https://github.com/niklasvh/base64-arraybuffer
@@ -35344,7 +35744,7 @@ Backoff.prototype.setJitter = function(jitter){
   };
 })();
 
-},{}],9:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 (function (global){
 /**
  * Create a blob builder even when vendor prefixes exist
@@ -35444,9 +35844,9 @@ module.exports = (function() {
 })();
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],10:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 
-},{}],11:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /**
  * @namespace Chart
  */
@@ -35512,7 +35912,7 @@ if (typeof window !== 'undefined') {
 	window.Chart = Chart;
 }
 
-},{"./charts/Chart.Bar":12,"./charts/Chart.Bubble":13,"./charts/Chart.Doughnut":14,"./charts/Chart.Line":15,"./charts/Chart.PolarArea":16,"./charts/Chart.Radar":17,"./charts/Chart.Scatter":18,"./controllers/controller.bar":19,"./controllers/controller.bubble":20,"./controllers/controller.doughnut":21,"./controllers/controller.line":22,"./controllers/controller.polarArea":23,"./controllers/controller.radar":24,"./core/core.animation":25,"./core/core.canvasHelpers":26,"./core/core.controller":27,"./core/core.datasetController":28,"./core/core.element":29,"./core/core.helpers":30,"./core/core.interaction":31,"./core/core.js":32,"./core/core.layoutService":33,"./core/core.plugin.js":34,"./core/core.scale":35,"./core/core.scaleService":36,"./core/core.ticks.js":37,"./core/core.tooltip":38,"./elements/element.arc":39,"./elements/element.line":40,"./elements/element.point":41,"./elements/element.rectangle":42,"./platforms/platform.js":44,"./plugins/plugin.filler.js":45,"./plugins/plugin.legend.js":46,"./plugins/plugin.title.js":47,"./scales/scale.category":48,"./scales/scale.linear":49,"./scales/scale.linearbase.js":50,"./scales/scale.logarithmic":51,"./scales/scale.radialLinear":52,"./scales/scale.time":53}],12:[function(require,module,exports){
+},{"./charts/Chart.Bar":14,"./charts/Chart.Bubble":15,"./charts/Chart.Doughnut":16,"./charts/Chart.Line":17,"./charts/Chart.PolarArea":18,"./charts/Chart.Radar":19,"./charts/Chart.Scatter":20,"./controllers/controller.bar":21,"./controllers/controller.bubble":22,"./controllers/controller.doughnut":23,"./controllers/controller.line":24,"./controllers/controller.polarArea":25,"./controllers/controller.radar":26,"./core/core.animation":27,"./core/core.canvasHelpers":28,"./core/core.controller":29,"./core/core.datasetController":30,"./core/core.element":31,"./core/core.helpers":32,"./core/core.interaction":33,"./core/core.js":34,"./core/core.layoutService":35,"./core/core.plugin.js":36,"./core/core.scale":37,"./core/core.scaleService":38,"./core/core.ticks.js":39,"./core/core.tooltip":40,"./elements/element.arc":41,"./elements/element.line":42,"./elements/element.point":43,"./elements/element.rectangle":44,"./platforms/platform.js":46,"./plugins/plugin.filler.js":47,"./plugins/plugin.legend.js":48,"./plugins/plugin.title.js":49,"./scales/scale.category":50,"./scales/scale.linear":51,"./scales/scale.linearbase.js":52,"./scales/scale.logarithmic":53,"./scales/scale.radialLinear":54,"./scales/scale.time":55}],14:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -35525,7 +35925,7 @@ module.exports = function(Chart) {
 
 };
 
-},{}],13:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -35537,7 +35937,7 @@ module.exports = function(Chart) {
 
 };
 
-},{}],14:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -35550,7 +35950,7 @@ module.exports = function(Chart) {
 
 };
 
-},{}],15:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -35563,7 +35963,7 @@ module.exports = function(Chart) {
 
 };
 
-},{}],16:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -35576,7 +35976,7 @@ module.exports = function(Chart) {
 
 };
 
-},{}],17:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -35589,7 +35989,7 @@ module.exports = function(Chart) {
 
 };
 
-},{}],18:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -35638,7 +36038,7 @@ module.exports = function(Chart) {
 
 };
 
-},{}],19:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -36023,7 +36423,7 @@ module.exports = function(Chart) {
 	});
 };
 
-},{}],20:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -36147,7 +36547,7 @@ module.exports = function(Chart) {
 	});
 };
 
-},{}],21:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -36452,7 +36852,7 @@ module.exports = function(Chart) {
 	});
 };
 
-},{}],22:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -36787,7 +37187,7 @@ module.exports = function(Chart) {
 	});
 };
 
-},{}],23:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -37012,7 +37412,7 @@ module.exports = function(Chart) {
 	});
 };
 
-},{}],24:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -37181,7 +37581,7 @@ module.exports = function(Chart) {
 	});
 };
 
-},{}],25:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 /* global window: false */
 'use strict';
 
@@ -37351,7 +37751,7 @@ module.exports = function(Chart) {
 
 };
 
-},{}],26:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -37503,7 +37903,7 @@ module.exports = function(Chart) {
 	Chart.helpers.canvas = helpers;
 };
 
-},{}],27:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -38356,7 +38756,7 @@ module.exports = function(Chart) {
 	Chart.Controller = Chart;
 };
 
-},{}],28:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -38688,7 +39088,7 @@ module.exports = function(Chart) {
 	Chart.DatasetController.extend = helpers.inherits;
 };
 
-},{}],29:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 'use strict';
 
 var color = require('chartjs-color');
@@ -38809,7 +39209,7 @@ module.exports = function(Chart) {
 	Chart.Element.extend = helpers.inherits;
 };
 
-},{"chartjs-color":55}],30:[function(require,module,exports){
+},{"chartjs-color":57}],32:[function(require,module,exports){
 /* global window: false */
 /* global document: false */
 'use strict';
@@ -39795,7 +40195,7 @@ module.exports = function(Chart) {
 	helpers.callCallback = helpers.callback;
 };
 
-},{"chartjs-color":55}],31:[function(require,module,exports){
+},{"chartjs-color":57}],33:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -40113,7 +40513,7 @@ module.exports = function(Chart) {
 	};
 };
 
-},{}],32:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 'use strict';
 
 module.exports = function() {
@@ -40171,7 +40571,7 @@ module.exports = function() {
 	return Chart;
 };
 
-},{}],33:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -40609,7 +41009,7 @@ module.exports = function(Chart) {
 	};
 };
 
-},{}],34:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -40982,7 +41382,7 @@ module.exports = function(Chart) {
 	Chart.PluginBase = Chart.Element.extend({});
 };
 
-},{}],35:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -41741,7 +42141,7 @@ module.exports = function(Chart) {
 	});
 };
 
-},{}],36:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -41787,7 +42187,7 @@ module.exports = function(Chart) {
 	};
 };
 
-},{}],37:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -41997,7 +42397,7 @@ module.exports = function(Chart) {
 	};
 };
 
-},{}],38:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -42937,7 +43337,7 @@ module.exports = function(Chart) {
 	};
 };
 
-},{}],39:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -43043,7 +43443,7 @@ module.exports = function(Chart) {
 	});
 };
 
-},{}],40:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -43132,7 +43532,7 @@ module.exports = function(Chart) {
 	});
 };
 
-},{}],41:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -43234,7 +43634,7 @@ module.exports = function(Chart) {
 	});
 };
 
-},{}],42:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -43444,7 +43844,7 @@ module.exports = function(Chart) {
 
 };
 
-},{}],43:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 'use strict';
 
 // Chart.Platform implementation for targeting a web browser
@@ -43729,7 +44129,7 @@ module.exports = function(Chart) {
 	};
 };
 
-},{}],44:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 'use strict';
 
 // By default, select the browser (DOM) platform.
@@ -43800,7 +44200,7 @@ module.exports = function(Chart) {
 	Chart.helpers.extend(Chart.platform, implementation(Chart));
 };
 
-},{"./platform.dom.js":43}],45:[function(require,module,exports){
+},{"./platform.dom.js":45}],47:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -44111,7 +44511,7 @@ module.exports = function(Chart) {
 	};
 };
 
-},{}],46:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -44657,7 +45057,7 @@ module.exports = function(Chart) {
 	};
 };
 
-},{}],47:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -44885,7 +45285,7 @@ module.exports = function(Chart) {
 	};
 };
 
-},{}],48:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -45019,7 +45419,7 @@ module.exports = function(Chart) {
 
 };
 
-},{}],49:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -45211,7 +45611,7 @@ module.exports = function(Chart) {
 
 };
 
-},{}],50:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -45319,7 +45719,7 @@ module.exports = function(Chart) {
 	});
 };
 
-},{}],51:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -45567,7 +45967,7 @@ module.exports = function(Chart) {
 
 };
 
-},{}],52:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 'use strict';
 
 module.exports = function(Chart) {
@@ -46092,7 +46492,7 @@ module.exports = function(Chart) {
 
 };
 
-},{}],53:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 /* global window: false */
 'use strict';
 
@@ -46536,7 +46936,7 @@ module.exports = function(Chart) {
 
 };
 
-},{"moment":82}],54:[function(require,module,exports){
+},{"moment":84}],56:[function(require,module,exports){
 /* MIT license */
 var colorNames = require('color-name');
 
@@ -46759,7 +47159,7 @@ for (var name in colorNames) {
    reverseNames[colorNames[name]] = name;
 }
 
-},{"color-name":58}],55:[function(require,module,exports){
+},{"color-name":60}],57:[function(require,module,exports){
 /* MIT license */
 var convert = require('color-convert');
 var string = require('chartjs-color-string');
@@ -47246,7 +47646,7 @@ if (typeof window !== 'undefined') {
 
 module.exports = Color;
 
-},{"chartjs-color-string":54,"color-convert":57}],56:[function(require,module,exports){
+},{"chartjs-color-string":56,"color-convert":59}],58:[function(require,module,exports){
 /* MIT license */
 
 module.exports = {
@@ -47946,7 +48346,7 @@ for (var key in cssKeywords) {
   reverseKeywords[JSON.stringify(cssKeywords[key])] = key;
 }
 
-},{}],57:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 var conversions = require("./conversions");
 
 var convert = function() {
@@ -48039,7 +48439,7 @@ Converter.prototype.getValues = function(space) {
 });
 
 module.exports = convert;
-},{"./conversions":56}],58:[function(require,module,exports){
+},{"./conversions":58}],60:[function(require,module,exports){
 'use strict'
 
 module.exports = {
@@ -48193,7 +48593,7 @@ module.exports = {
 	"yellowgreen": [154, 205, 50]
 };
 
-},{}],59:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 /**
  * Slice reference.
  */
@@ -48218,7 +48618,7 @@ module.exports = function(obj, fn){
   }
 };
 
-},{}],60:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -48383,7 +48783,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],61:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 
 module.exports = function(a, b){
   var fn = function(){};
@@ -48391,7 +48791,7 @@ module.exports = function(a, b){
   a.prototype = new fn;
   a.prototype.constructor = a;
 };
-},{}],62:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 (function (process){
 /**
  * This is the web browser implementation of `debug()`.
@@ -48580,7 +48980,7 @@ function localstorage() {
 }
 
 }).call(this,require('_process'))
-},{"./debug":63,"_process":88}],63:[function(require,module,exports){
+},{"./debug":65,"_process":90}],65:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -48784,11 +49184,11 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":83}],64:[function(require,module,exports){
+},{"ms":85}],66:[function(require,module,exports){
 
 module.exports = require('./lib/index');
 
-},{"./lib/index":65}],65:[function(require,module,exports){
+},{"./lib/index":67}],67:[function(require,module,exports){
 
 module.exports = require('./socket');
 
@@ -48800,7 +49200,7 @@ module.exports = require('./socket');
  */
 module.exports.parser = require('engine.io-parser');
 
-},{"./socket":66,"engine.io-parser":74}],66:[function(require,module,exports){
+},{"./socket":68,"engine.io-parser":76}],68:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -49548,7 +49948,7 @@ Socket.prototype.filterUpgrades = function (upgrades) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./transport":67,"./transports/index":68,"component-emitter":60,"debug":62,"engine.io-parser":74,"indexof":81,"parsejson":84,"parseqs":85,"parseuri":86}],67:[function(require,module,exports){
+},{"./transport":69,"./transports/index":70,"component-emitter":62,"debug":64,"engine.io-parser":76,"indexof":83,"parsejson":86,"parseqs":87,"parseuri":88}],69:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -49707,7 +50107,7 @@ Transport.prototype.onClose = function () {
   this.emit('close');
 };
 
-},{"component-emitter":60,"engine.io-parser":74}],68:[function(require,module,exports){
+},{"component-emitter":62,"engine.io-parser":76}],70:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies
@@ -49764,7 +50164,7 @@ function polling (opts) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling-jsonp":69,"./polling-xhr":70,"./websocket":72,"xmlhttprequest-ssl":73}],69:[function(require,module,exports){
+},{"./polling-jsonp":71,"./polling-xhr":72,"./websocket":74,"xmlhttprequest-ssl":75}],71:[function(require,module,exports){
 (function (global){
 
 /**
@@ -49999,7 +50399,7 @@ JSONPPolling.prototype.doWrite = function (data, fn) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling":71,"component-inherit":61}],70:[function(require,module,exports){
+},{"./polling":73,"component-inherit":63}],72:[function(require,module,exports){
 (function (global){
 /**
  * Module requirements.
@@ -50416,7 +50816,7 @@ function unloadHandler () {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling":71,"component-emitter":60,"component-inherit":61,"debug":62,"xmlhttprequest-ssl":73}],71:[function(require,module,exports){
+},{"./polling":73,"component-emitter":62,"component-inherit":63,"debug":64,"xmlhttprequest-ssl":75}],73:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -50663,7 +51063,7 @@ Polling.prototype.uri = function () {
   return schema + '://' + (ipv6 ? '[' + this.hostname + ']' : this.hostname) + port + this.path + query;
 };
 
-},{"../transport":67,"component-inherit":61,"debug":62,"engine.io-parser":74,"parseqs":85,"xmlhttprequest-ssl":73,"yeast":99}],72:[function(require,module,exports){
+},{"../transport":69,"component-inherit":63,"debug":64,"engine.io-parser":76,"parseqs":87,"xmlhttprequest-ssl":75,"yeast":101}],74:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -50953,7 +51353,7 @@ WS.prototype.check = function () {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../transport":67,"component-inherit":61,"debug":62,"engine.io-parser":74,"parseqs":85,"ws":10,"yeast":99}],73:[function(require,module,exports){
+},{"../transport":69,"component-inherit":63,"debug":64,"engine.io-parser":76,"parseqs":87,"ws":12,"yeast":101}],75:[function(require,module,exports){
 (function (global){
 // browser shim for xmlhttprequest module
 
@@ -50994,7 +51394,7 @@ module.exports = function (opts) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"has-cors":80}],74:[function(require,module,exports){
+},{"has-cors":82}],76:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -51604,7 +52004,7 @@ exports.decodePayloadAsBinary = function (data, binaryType, callback) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./keys":75,"./utf8":76,"after":1,"arraybuffer.slice":6,"base64-arraybuffer":8,"blob":9,"has-binary2":78}],75:[function(require,module,exports){
+},{"./keys":77,"./utf8":78,"after":1,"arraybuffer.slice":8,"base64-arraybuffer":10,"blob":11,"has-binary2":80}],77:[function(require,module,exports){
 
 /**
  * Gets the keys for an object.
@@ -51625,7 +52025,7 @@ module.exports = Object.keys || function keys (obj){
   return arr;
 };
 
-},{}],76:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 (function (global){
 /*! https://mths.be/utf8js v2.1.2 by @mathias */
 ;(function(root) {
@@ -51884,7 +52284,7 @@ module.exports = Object.keys || function keys (obj){
 }(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],77:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 /* FileSaver.js
  * A saveAs() FileSaver implementation.
  * 1.3.2
@@ -52074,7 +52474,7 @@ if (typeof module !== "undefined" && module.exports) {
   });
 }
 
-},{}],78:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 (function (global){
 /* global Blob File */
 
@@ -52140,14 +52540,14 @@ function hasBinary (obj) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"isarray":79}],79:[function(require,module,exports){
+},{"isarray":81}],81:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],80:[function(require,module,exports){
+},{}],82:[function(require,module,exports){
 
 /**
  * Module exports.
@@ -52166,7 +52566,7 @@ try {
   module.exports = false;
 }
 
-},{}],81:[function(require,module,exports){
+},{}],83:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -52177,7 +52577,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],82:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 //! moment.js
 //! version : 2.18.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
@@ -56642,7 +57042,7 @@ return hooks;
 
 })));
 
-},{}],83:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -56796,7 +57196,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],84:[function(require,module,exports){
+},{}],86:[function(require,module,exports){
 (function (global){
 /**
  * JSON parse.
@@ -56831,7 +57231,7 @@ module.exports = function parsejson(data) {
   }
 };
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],85:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 /**
  * Compiles a querystring
  * Returns string representation of the object
@@ -56870,7 +57270,7 @@ exports.decode = function(qs){
   return qry;
 };
 
-},{}],86:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 /**
  * Parses an URI
  *
@@ -56911,7 +57311,7 @@ module.exports = function parseuri(str) {
     return uri;
 };
 
-},{}],87:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -57139,7 +57539,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":88}],88:[function(require,module,exports){
+},{"_process":90}],90:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -57325,7 +57725,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],89:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -57421,7 +57821,7 @@ exports.connect = lookup;
 exports.Manager = require('./manager');
 exports.Socket = require('./socket');
 
-},{"./manager":90,"./socket":92,"./url":93,"debug":62,"socket.io-parser":95}],90:[function(require,module,exports){
+},{"./manager":92,"./socket":94,"./url":95,"debug":64,"socket.io-parser":97}],92:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -57996,7 +58396,7 @@ Manager.prototype.onreconnect = function () {
   this.emitAll('reconnect', attempt);
 };
 
-},{"./on":91,"./socket":92,"backo2":7,"component-bind":59,"component-emitter":60,"debug":62,"engine.io-client":64,"indexof":81,"socket.io-parser":95}],91:[function(require,module,exports){
+},{"./on":93,"./socket":94,"backo2":9,"component-bind":61,"component-emitter":62,"debug":64,"engine.io-client":66,"indexof":83,"socket.io-parser":97}],93:[function(require,module,exports){
 
 /**
  * Module exports.
@@ -58022,7 +58422,7 @@ function on (obj, ev, fn) {
   };
 }
 
-},{}],92:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -58442,7 +58842,7 @@ Socket.prototype.compress = function (compress) {
   return this;
 };
 
-},{"./on":91,"component-bind":59,"component-emitter":60,"debug":62,"parseqs":85,"socket.io-parser":95,"to-array":98}],93:[function(require,module,exports){
+},{"./on":93,"component-bind":61,"component-emitter":62,"debug":64,"parseqs":87,"socket.io-parser":97,"to-array":100}],95:[function(require,module,exports){
 (function (global){
 
 /**
@@ -58521,7 +58921,7 @@ function url (uri, loc) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"debug":62,"parseuri":86}],94:[function(require,module,exports){
+},{"debug":64,"parseuri":88}],96:[function(require,module,exports){
 (function (global){
 /*global Blob,File*/
 
@@ -58666,7 +59066,7 @@ exports.removeBlobs = function(data, callback) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-buffer":96,"isarray":97}],95:[function(require,module,exports){
+},{"./is-buffer":98,"isarray":99}],97:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -59068,7 +59468,7 @@ function error() {
   };
 }
 
-},{"./binary":94,"./is-buffer":96,"component-emitter":60,"debug":62,"has-binary2":78}],96:[function(require,module,exports){
+},{"./binary":96,"./is-buffer":98,"component-emitter":62,"debug":64,"has-binary2":80}],98:[function(require,module,exports){
 (function (global){
 
 module.exports = isBuf;
@@ -59085,9 +59485,9 @@ function isBuf(obj) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],97:[function(require,module,exports){
-arguments[4][79][0].apply(exports,arguments)
-},{"dup":79}],98:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
+arguments[4][81][0].apply(exports,arguments)
+},{"dup":81}],100:[function(require,module,exports){
 module.exports = toArray
 
 function toArray(list, index) {
@@ -59102,7 +59502,7 @@ function toArray(list, index) {
     return array
 }
 
-},{}],99:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 'use strict';
 
 var alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'.split('')
@@ -59172,9 +59572,10 @@ yeast.encode = encode;
 yeast.decode = decode;
 module.exports = yeast;
 
-},{}],100:[function(require,module,exports){
+},{}],102:[function(require,module,exports){
 const angular = require('angular')
 const angularRoute = require('angular-route')
+const angularjwt = require('angular-jwt')
 
 const homeController = require('./routes/home/controller')
 const homeConfing = require('./routes/home/index')
@@ -59193,7 +59594,7 @@ const resultsConfing = require('./routes/results/index')
 
 const dataService = require('./services/dataService')
 
-angular.module('suffragium', [angularRoute])
+angular.module('suffragium', [angularRoute, angularjwt])
   .controller('homeController', homeController)
   .controller('privateAreaController', privateAreaController)
   .controller('loginController', loginController)
@@ -59206,7 +59607,7 @@ angular.module('suffragium', [angularRoute])
   .config(resultsConfing)
   .factory('dataService', dataService)
 
-},{"./routes/home/controller":101,"./routes/home/index":102,"./routes/login/controller":103,"./routes/login/index":104,"./routes/privateArea/controller":105,"./routes/privateArea/index":106,"./routes/register/controller":107,"./routes/register/index":108,"./routes/results/controller":111,"./routes/results/index":112,"./services/dataService":113,"angular":5,"angular-route":3}],101:[function(require,module,exports){
+},{"./routes/home/controller":103,"./routes/home/index":104,"./routes/login/controller":105,"./routes/login/index":106,"./routes/privateArea/controller":107,"./routes/privateArea/index":108,"./routes/register/controller":109,"./routes/register/index":110,"./routes/results/controller":113,"./routes/results/index":114,"./services/dataService":115,"angular":7,"angular-jwt":3,"angular-route":5}],103:[function(require,module,exports){
 'use strict'
 
 function homeController ($scope, dataService) {
@@ -59220,7 +59621,7 @@ function homeController ($scope, dataService) {
 
 module.exports = homeController
 
-},{}],102:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
 const path = require('path')
 
 const htmlHome = "<body id=\"top\" class=\"scrollspy\">\n    <!-- Pre Loader -->\n    <div id=\"loader-wrapper\">\n        <div id=\"loader\"></div>\n        <div class=\"loader-section section-left\"></div>\n        <div class=\"loader-section section-right\"></div>\n    </div>\n    <!--Navigation-->\n    <div class=\"navbar-fixed\">\n        <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n            <div class=\"container\">\n                <div class=\"nav-wrapper\">\n                    <a ng-href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                    <ul class=\"right hide-on-med-and-down\">\n                        <li><a ng-href=\"#!/register\">Register</a></li>\n                        <li><a ng-href=\"#!/login\">Login</a></li>\n                    </ul>\n                    <ul id=\"nav-mobile\" class=\"side-nav\">\n                        <li><a ng-href=\"#!/register\">Register</a></li>\n                        <li><a ng-href=\"#!/login\">Login</a></li>\n                    </ul>\n                    <a ng-href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n                </div>\n            </div>\n        </nav>\n    </div>\n    <!--Intro and service-->\n    <div id=\"intro\" class=\"section scrollspy\">\n        <div class=\"container\">\n            <div class=\"row\">\n                <div class=\"col s12 principal-btn\">\n                    <h2 class=\"center header text_h2\"> Create your <span class=\"span_h2\"> poll </span>and get results instantly! Visualize data in a way you've never did before! <span class=\"span_h2\">Create your poll now !</span></h2>\n                    <a ng-href=\"#!/register\">\n                        <button class=\"btn voted\" name=\"action\">Create Poll\n                            <i class=\"material-icons right\">chevron_right</i>\n                        </button>\n                    </a>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"center promo promo-example\">\n                        <i class=\"mdi-image-flash-on\"></i>\n                        <h5 class=\"promo-caption\">Speeds Up Decisions</h5>\n                        <p class=\"light center\">Do you have a question and need quick results? Get people's opinon and take a fast decision! </p>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"center promo promo-example\">\n                        <i class=\"mdi-social-group\"></i>\n                        <h5 class=\"promo-caption\">User Experience Focused</h5>\n                        <p class=\"light center\">Easy to use, responsive and simple data visualitzation about the poll results.</p>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"center promo promo-example\">\n                        <i class=\"mdi-hardware-desktop-windows\"></i>\n                        <h5 class=\"promo-caption\">Duplicate Checking Options:</h5>\n                        <ul class=\"light center\">\n                            <li>IP Duplication Checking</li>\n                            <li>Cookie Browser Duplication Checking</li>\n                            <li>Login Duplication Checking</li>\n                        </ul>\n                    </div>\n                </div>\n            </div>\n        </div>\n    </div>\n    <!--Card Polls-->\n    <div class=\"section scrollspy\" id=\"work\">\n        <div class=\"container\">\n            <h2 class=\"header text_b\">Polls</h2>\n            <div class=\"row\">\n                <div class=\"col s12 m4 l4\" ng-repeat=\"poll in polls\">\n                    <div class=\"card\">\n                        <div class=\"card-image waves-effect waves-block waves-light\">\n                            <a href=\"#!/poll/{{poll._id}}\"><img class=\"thumbnail-card\" ng-src=\"https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360\"></a>\n                        </div>\n                        <div class=\"card-content\">\n                            <span class=\"title-nowrap card-title activator grey-text text-darken-4\">{{poll.question}}</span>\n                            <p><a href=\"#!/poll/{{poll._id}}\">Go to poll</a></p>\n                        </div>\n                        <div class=\"card-reveal\">\n                            <span class=\"card-title grey-text text-darken-4\">{{poll.question}}<i class=\"mdi-navigation-close right\"></i></span>\n                            <p>Vote options:</p>\n                            <p ng-repeat=\"option in poll.options\">{{option.option}}</p>\n                        </div>\n                    </div>\n                </div>                \n            </div>\n        </div>\n    </div>\n    <footer id=\"contact\" class=\"page-footer default_color scrollspy\">\n        <div class=\"container\">\n            <div class=\"row\">\n                <div class=\"col l3 s12\">\n                    <h5 class=\"white-text\">Social</h5>\n                    <ul>\n                        <li>\n                            <a class=\"white-text\" ng-href=\"#\">\n                            <i class=\"small fa fa-facebook-square white-text\"></i> Facebook \n                        </a>\n                        </li>\n                        <li>\n                            <a class=\"white-text\" ng-href=\"https://github.com/jalbertsr\">\n                            <i class=\"small fa fa-github-square white-text\"></i> Github \n                        </a>\n                        </li>\n                    </ul>\n                </div>\n            </div>\n        </div>\n        <div class=\"footer-copyright default_color\">\n            <div class=\"container\">\n                Made by <a class=\"white-text\" ng-href=\"#\">Joan Albert Segura</a>. Done with <a class=\"white-text\" ng-href=\"http://materializecss.com/\">materializecss</a>\n            </div>\n        </div>\n    </footer>\n</body>"
@@ -59235,14 +59636,14 @@ function configRouteHome ($routeProvider) {
 
 module.exports = configRouteHome
 
-},{"path":87}],103:[function(require,module,exports){
+},{"path":89}],105:[function(require,module,exports){
 'use strict'
 
 function loginController () {}
 
 module.exports = loginController
 
-},{}],104:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
 const path = require('path')
 
 const htmlLogin = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row signup\">\n    <div id=\"signup\">\n        <div class=\"container signup-screen row\">\n            <div class=\"s3 offset-s6\">\n                <div class=\"space-bot text-center\">\n                    <h1 class=\"title-color\">Login</h1>\n                    <div class=\"divider\"></div>\n                </div>\n            </div>\n            <div class=\"s6 offset-s2\">\n                <form class=\"form-register\" method=\"POST\" name=\"login\" action=\"/login/\" novalidate>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"email\" type=\"email\" name=\"email\" ng-model=\"email\" class=\"validate\" required>\n                        <label for=\"email\">Email</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-login.email.$error.email\">Your email is invalid.</p>\n                    </div>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"password\" type=\"password\" name=\"password\" ng-model=\"password\" ng-minlength='6' class=\"validate\" required>\n                        <label for=\"password\">Password</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-login.password.$error.minlength || form.password.$invalid\">Your password must be at least 6 characters.</p>\n                    </div>\n                    <div class=\"space-top text-center col s8\">\n                        <button onclick=\"Materialize.toast('Logged!', 1000)\" ng-disabled=\"form-login.$invalid\" class=\"waves-effect waves-light btn done default-color\">\n                            <i class=\"material-icons left demo-color\">done</i> Login\n                        </button>\n                    </div>\n                </form>\n            </div>\n        </div>\n    </div>\n</div>"
@@ -59257,7 +59658,7 @@ function configLogin ($routeProvider) {
 
 module.exports = configLogin
 
-},{"path":87}],105:[function(require,module,exports){
+},{"path":89}],107:[function(require,module,exports){
 'use strict'
 
 function privateAreaController ($scope, $routeParams, dataService) {
@@ -59316,7 +59717,7 @@ function privateAreaController ($scope, $routeParams, dataService) {
 
 module.exports = privateAreaController
 
-},{}],106:[function(require,module,exports){
+},{}],108:[function(require,module,exports){
 const path = require('path')
 
 const htmlPrivateArea = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/\">Logout</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/\">Logout</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row create-poll\">\n    <div class=\"col l6 offset-s2 s9\">\n        <form class=\"form-register\" name=\"poll\" action=\"/privateArea/\" method=\"POST\" novalidate>\n            <input type=\"hidden\" name=\"userID\" value=\"{{userID}}\">\n            <p class=\"title-create-style  create-poll-title\">Create your poll</p>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"question\" ng-model=\"question\" type=\"text\" name=\"question\" class=\"validate\" required>\n                <label for=\"question\">Type your question here</label>\n            </div>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"option1\" ng-model=\"option1\" type=\"text\" name=\"option1\" required>\n                <label for=\"option1\">Option 1</label>\n            </div>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"option2\" ng-model=\"option2\" type=\"text\" name=\"option2\" required>\n                <label for=\"option2\">Option 2</label>\n            </div>\n            <div class=\"add-margin  input-field col s8\">\n                <span id=\"addOption\" class=\"info-pointer\"><i class=\"material-icons info-icon\">add</i><label class=\" info-pointer label-add\">Add another option</label></span>\n            </div>\n            <div class=\"add-margin input-field col s8\">\n                <p>Allow multiple poll answers:</p>\n                <div class=\"switch\">\n                    <label class=\"multiple-vote-space\">\n                        No\n                        <input type=\"checkbox\" name=\"allowMoreThanOne\">\n                        <span class=\"lever\"></span> Yes\n                    </label>\n                </div>\n            </div>\n            <div class=\"input-field duplicaton-top-space col s8 row\">\n                <div class=\"select-duplication col s11\">\n                    <select name=\"duplicationChecking\">\n                        <option value=\"none\" disabled selected>Choose checking option:</option>\n                        <option value=\"none\">No Duplication Checking</option>\n                        <option value=\"login\">Login Duplication Checking </option>\n                        <option value=\"cookie\">Cookie Browser Duplication Checking</option>\n                    </select>\n                </div>\n                <div class=\"col s1\">\n                    <span id=\"info-activate\" class=\"info-pointer\">\n                        <a><i class=\"material-icons info-icon\">info_outline</i></a>\n                    </span>\n                </div>\n            </div>\n            <div class=\"select-duplication col s8\">\n                <button onclick=\"Materialize.toast('Poll created!', 1000)\" ng-disabled=\"form-poll.$invalid || form-register.$pending\" class=\"btn voted btn-poll\">Create Poll\n                    <i class=\"material-icons right\">send</i>\n                </button>\n            </div>\n        </form>\n        <!-- begin info modal -->\n        <div id=\"info-modal\" class=\"modal\">\n            <div class=\"modal-content\">\n                <h4 class=\"modal-title\">Duplication Checking Info</h4>\n                <p><strong>Browser Cookie Duplication Checking</strong> - Duplicate votes will be disallowed based on the browser of the user, allowing multiple votes from the same IP address.</p>\n                <p><strong>Require User Sign In to Vote</strong> - Voting is not allowed unless the voter is signed into their Suffragium account.</p>\n                <p><strong>No Duplication Checking</strong> - Duplication checking will be disabled and users can vote as many times as they would like.</p>\n            </div>\n            <div class=\"modal-footer\">\n                <span><a id=\"btnClose\" class=\"modal-action btn-flat\">Ok</a></span>\n            </div>\n        </div>\n        <!-- end info modal -->\n    </div>\n    <!-- begin my polls -->\n    <div class=\"col l5 offset-l1 offset-s2 s9\">\n        <p class=\"title-create-style owned-polls\"> My polls </p>\n        <div class=\"personal-polls row\" ng-repeat=\"poll in userPolls\" id=\"{{poll.uid._id}}\">\n            <a href=\"#!/poll/{{poll.uid._id}}\">\n                <p class=\"question-own-poll\">{{poll.uid.question}}</p>\n            </a>\n            <div class=\"switch col l8 s8\">\n                <label>\n                    Close\n                    <input type=\"checkbox\" ng-change=\"updateStatus(poll.uid)\" ng-model=\"poll.uid.pollInfo.status\" ng-checked=\"{{poll.uid.pollInfo.status}}\">\n                    <span class=\"lever\"></span> Open\n                </label>\n            </div>\n            <div class=\"col l4 s4\" ng-click=\"deletePoll($event)\">\n                <span class=\"info-icon info-pointer\"><i class=\"material-icons\">delete</i></span>\n            </div>\n        </div>\n    </div>\n    <!-- end my polls -->\n</div>"
@@ -59331,29 +59732,41 @@ function privateAreaConfig ($routeProvider) {
 
 module.exports = privateAreaConfig
 
-},{"path":87}],107:[function(require,module,exports){
+},{"path":89}],109:[function(require,module,exports){
+/* global Materialize */
+
 'use strict'
 
-function registerController () {}
+function registerController (AuthService) {
+  this.register = (e) => {
+    e.preventDefault()
+    AuthService.register(this.username, this.password)
+      .then(data => {
+        if (data.succes) Materialize.toast('Registered!', 1000)
+        else Materialize.toast('Email in use!', 1000)
+      })
+  }
+}
 
 module.exports = registerController
 
-},{}],108:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
 const path = require('path')
 
-const htmlRegister = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row signup\">\n    <div id=\"signup\">\n        <div class=\"container signup-screen row\">\n            <div class=\"s3 offset-s6\">\n                <div class=\"space-bot text-center\">\n                    <h1 class=\"title-color\">Register</h1>\n                    <div class=\"divider\"></div>\n                </div>\n            </div>\n            <div class=\"s6 offset-s2\">\n                <form class=\"form-register\" method=\"POST\" name=\"register\" action=\"/register/\" novalidate>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"email\" type=\"email\" name=\"email\" ng-model=\"email\" class=\"validate\" required>\n                        <label for=\"email\">Email</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-register.email.$error.email\">Your email is invalid.</p>\n                    </div>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"password\" type=\"password\" name=\"password\" ng-model=\"password\" ng-minlength='6' class=\"validate\" required>\n                        <label for=\"password\">Password</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-register.password.$error.minlength || form.password.$invalid\">Your password must be at least 6 characters.</p>\n                    </div>\n                    <div class=\"space-top text-center col s8\">\n                        <button onclick=\"Materialize.toast('Registered!', 1000)\" ng-disabled=\"form-register.$invalid\" class=\"waves-effect waves-light btn done default-color\">\n                            <i class=\"material-icons left demo-color\">done</i> Register\n                        </button>\n                    </div>\n                </form>\n            </div>\n        </div>\n    </div>\n</div>"
+const htmlRegister = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row signup\">\n    <div id=\"signup\">\n        <div class=\"container signup-screen row\">\n            <div class=\"s3 offset-s6\">\n                <div class=\"space-bot text-center\">\n                    <h1 class=\"title-color\">Register</h1>\n                    <div class=\"divider\"></div>\n                </div>\n            </div>\n            <div class=\"s6 offset-s2\">\n                <form class=\"form-register\" name=\"register\" ng-submit=\"vm.register($event)\" novalidate>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"email\" type=\"email\" name=\"email\" ng-model=\"vm.email\" class=\"validate\" required>\n                        <label for=\"email\">Email</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-register.email.$error.email\">Your email is invalid.</p>\n                    </div>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"password\" type=\"password\" name=\"password\" ng-model=\"vm.password\" ng-minlength='6' class=\"validate\" required>\n                        <label for=\"password\">Password</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-register.password.$error.minlength || form.password.$invalid\">Your password must be at least 6 characters.</p>\n                    </div>\n                    <div class=\"space-top text-center col s8\">\n                        <button ng-disabled=\"form-register.$invalid\" class=\"waves-effect waves-light btn done default-color\">\n                            <i class=\"material-icons left demo-color\">done</i> Register\n                        </button>\n                    </div>\n                </form>\n            </div>\n        </div>\n    </div>\n</div>"
 
 function registerConfig ($routeProvider) {
   $routeProvider
     .when('/register', {
       template: htmlRegister,
-      controller: 'registerController'
+      controller: 'registerController',
+      controllerAs: 'vm'
     })
 }
 
 module.exports = registerConfig
 
-},{"path":87}],109:[function(require,module,exports){
+},{"path":89}],111:[function(require,module,exports){
 module.exports=["rgba(54, 162, 235, 0.3)", 
 "rgba(255, 99, 132, 0.3)", 
 "rgba(255, 206, 86, 0.3)", 
@@ -59402,7 +59815,7 @@ module.exports=["rgba(54, 162, 235, 0.3)",
 "rgba(127,255,212,0.3)",
 "rgba(176,224,230,0.3)",
 "rgba(95,158,160,0.3)"]
-},{}],110:[function(require,module,exports){
+},{}],112:[function(require,module,exports){
 module.exports=["rgba(54, 162, 235, 1)", 
 "rgba(255, 99, 132, 1)", 
 "rgba(255, 206, 86, 1)", 
@@ -59451,7 +59864,7 @@ module.exports=["rgba(54, 162, 235, 1)",
 "rgba(127,255,212,1)",
 "rgba(176,224,230,1)",
 "rgba(95,158,160,1)"]
-},{}],111:[function(require,module,exports){
+},{}],113:[function(require,module,exports){
 /* global angular */
 'use strict'
 
@@ -59732,7 +60145,7 @@ const truncateString = (initialString) => {
 
 module.exports = resultsController
 
-},{"./colors/backgroundColors.json":109,"./colors/borderColors.json":110,"chart.js":11,"file-saver":77,"socket.io-client":89}],112:[function(require,module,exports){
+},{"./colors/backgroundColors.json":111,"./colors/borderColors.json":112,"chart.js":13,"file-saver":79,"socket.io-client":91}],114:[function(require,module,exports){
 const path = require('path')
 
 const htmlResults = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container-results\">\n    <div class=\"row\">\n        <div class=\"row col s11 l4 offset-l1 container-question\">\n            <p class=\"title-results-style title-size\">{{question}}</p>\n            <!-- begin checkbox option -->\n            <div ng-if=\"allowMoreThanOne\" class=\"container space\" ng-repeat=\"option in options\" id=\"{{option._id}}\">\n                <input type=\"checkbox\" id=\"option{{$index}}\" ng-model=\"option.selected\" ng-true-value=\"'{{option._id}}'\" ng-false-value=\"false\" >\n                <label for=\"option{{$index}}\">{{option.option}}</label>\n            </div>\n            <!-- end checkbox option -->\n             <!-- begin radio option -->\n            <div ng-if=\"!allowMoreThanOne\" class=\"container space\" ng-repeat=\"option in options\" id=\"{{option._id}}\">\n                <input class=\"with-gap\" type=\"radio\" id=\"option{{$index}}\" name=\"radio\" ng-model=\"changedVal\" value=\"{{$index}}\" ng-checked=\"false\" ng-click=\"getVal(option._id)\">\n                <label for=\"option{{$index}}\">{{option.option}}</label>\n            </div>\n            <!-- end radio option -->\n            <button ng-if=\"status\" class=\"btn voted\" type=\"submit\" name=\"action\" onclick=\"Materialize.toast('Voted!', 1000)\" ng-click=\"vote(options)\">Vote\n                <i class=\"material-icons right\">send</i>\n            </button>\n            <div class=\"title-results-style\">\n                <p class=\"info-results\">Total Votes: {{totalVotes}}</p>\n                <p>Status: {{status ? 'Open' : 'Closed'}}</p>\n            </div>\n        </div>\n        <div class=\"col s11 l6 row container-graph\">\n            <canvas class=\"canvas-graph-style\" height=\"120\" width=\"230\" id=\"myChart\"></canvas>\n            <div class=\"input-field col s6\">\n                <select ng-change=\"changeChart(chartType)\" ng-model=\"chartType\">\n                  <option value=\"\" disabled>Choose Chart</option>\n                  <option value=\"bar\">Bar Chart</option>\n                  <option value=\"horizontalBar\">Horitzontal Bar Chart</option>\n                  <option value=\"line\">Line Chart</option>\n                  <option value=\"doughnut\">Doughnut Chart</option>\n                  <option value=\"pie\">Pie Chart</option>\n                </select>\n            </div>\n            <div class=\"col offset-s3 s3 save-button\">\n                <button class=\"btn voted\" ng-click=\"saveChart()\" name=\"action\" onclick=\"Materialize.toast('Saved!', 1000)\">Save\n                    <i class=\"material-icons right\">file_download</i>\n                </button>\n            </div>\n        </div>\n    </div>\n</div>"
@@ -59747,9 +60160,8 @@ function resultsConfig ($routeProvider) {
 
 module.exports = resultsConfig
 
-},{"path":87}],113:[function(require,module,exports){
+},{"path":89}],115:[function(require,module,exports){
 'use strict'
-
 const getData = ($http) => {
   const getInfoPoll = (id) => {
     const url = `/api/infoPoll/${id}`
@@ -59793,4 +60205,4 @@ const getData = ($http) => {
 
 module.exports = getData
 
-},{}]},{},[100]);
+},{}]},{},[102]);

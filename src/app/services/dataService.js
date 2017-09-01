@@ -1,5 +1,4 @@
 'use strict'
-
 const getData = ($http) => {
   const getInfoPoll = (id) => {
     const url = `/api/infoPoll/${id}`

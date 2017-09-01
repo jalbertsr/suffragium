@@ -5,6 +5,7 @@ const handlePostRegister = (req, res) => {
 
   const account = new User({ email })
 
+  console.log(account)
   const id = account._id
 
   User.register(account, password, err => {

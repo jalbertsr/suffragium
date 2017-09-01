@@ -15,7 +15,7 @@ const checkVote = require('../middlewares/checkVote')
 router.put('/api/poll/:pollId/vote/:voteIds', checkVote, handleVote) // middleware gordo, cookie - ip - login - etc...
 router.get('/api/infoPoll/:id', infoPoll)
 router.get('/api/getPolls/', getPolls)
-router.get('/api/infoUser/:id', getUserPolls)
+router.get('/api/infoUser/:id', passport.authenticate('jwt', { session: false }), getUserPolls)
 router.post('/privateArea/', getPollInfo)
 
 // middleware -> usuario logeado? ->  este usario le pertenece esta encuesta? -> si/no

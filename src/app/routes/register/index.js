@@ -6,7 +6,8 @@ function registerConfig ($routeProvider) {
   $routeProvider
     .when('/register', {
       template: htmlRegister,
-      controller: 'registerController'
+      controller: 'registerController',
+      controllerAs: 'vm'
     })
 }
 

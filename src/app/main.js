@@ -1,5 +1,6 @@
 const angular = require('angular')
 const angularRoute = require('angular-route')
+const angularjwt = require('angular-jwt')
 
 const homeController = require('./routes/home/controller')
 const homeConfing = require('./routes/home/index')
@@ -18,7 +19,7 @@ const resultsConfing = require('./routes/results/index')
 
 const dataService = require('./services/dataService')
 
-angular.module('suffragium', [angularRoute])
+angular.module('suffragium', [angularRoute, angularjwt])
   .controller('homeController', homeController)
   .controller('privateAreaController', privateAreaController)
   .controller('loginController', loginController)
