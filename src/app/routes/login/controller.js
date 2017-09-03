@@ -5,11 +5,11 @@
 function loginController (AuthService, $location) {
   this.login = (e) => {
     e.preventDefault()
-    AuthService.login(this.username, this.password)
-      .then(success => {
-        if (success) {
+    AuthService.login(this.email, this.password)
+      .then(data => {
+        if (data.success) {
           Materialize.toast('Succesfully logged!', 1000)
-          $location.path('/login')
+          $location.path(`/username/${data.id}`)
         } else {
           Materialize.toast('Try again!', 1000)
         }

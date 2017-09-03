@@ -59601,13 +59601,14 @@ const resultsConfing = require('./routes/results/index')
 
 const dataService = require('./services/dataService')
 const StorageService = require('./services/StorageService')
-const AuthService = require('./services/authService')
+const AuthService = require('./services/AuthService')
 const AuthInterceptor = require('./services/AuthInterceptor')
 
 const interceptor = require('./interceptor/interceptor')
 const run = require('./run/run')
 
 angular.module('suffragium', [angularRoute, angularjwt])
+  .run(run)
   .controller('homeController', homeController)
   .controller('privateAreaController', privateAreaController)
   .controller('loginController', loginController)
@@ -59624,18 +59625,22 @@ angular.module('suffragium', [angularRoute, angularjwt])
   .factory('StorageService', StorageService)
   .factory('AuthService', AuthService)
   .factory('AuthInterceptor', AuthInterceptor)
-  .run(run)
 
-},{"./interceptor/interceptor":102,"./routes/home/controller":104,"./routes/home/index":105,"./routes/login/controller":106,"./routes/login/index":107,"./routes/privateArea/controller":108,"./routes/privateArea/index":109,"./routes/register/controller":110,"./routes/register/index":111,"./routes/results/controller":114,"./routes/results/index":115,"./run/run":116,"./services/AuthInterceptor":117,"./services/StorageService":118,"./services/authService":119,"./services/dataService":120,"angular":7,"angular-jwt":3,"angular-route":5}],104:[function(require,module,exports){
+},{"./interceptor/interceptor":102,"./routes/home/controller":104,"./routes/home/index":105,"./routes/login/controller":106,"./routes/login/index":107,"./routes/privateArea/controller":108,"./routes/privateArea/index":109,"./routes/register/controller":110,"./routes/register/index":111,"./routes/results/controller":114,"./routes/results/index":115,"./run/run":116,"./services/AuthInterceptor":117,"./services/AuthService":118,"./services/StorageService":119,"./services/dataService":120,"angular":7,"angular-jwt":3,"angular-route":5}],104:[function(require,module,exports){
 'use strict'
 
-function homeController ($scope, dataService) {
+function homeController ($scope, dataService, AuthService, $location) {
   dataService.getPolls()
     .then((response) => {
       $scope.polls = response.data
       console.log(response)
     })
     .catch(console.log)
+
+  $scope.logout = () => {
+    AuthService.logout()
+    $location.path('/')
+  }
 }
 
 module.exports = homeController
@@ -59643,7 +59648,7 @@ module.exports = homeController
 },{}],105:[function(require,module,exports){
 const path = require('path')
 
-const htmlHome = "<body id=\"top\" class=\"scrollspy\">\n    <!-- Pre Loader -->\n    <div id=\"loader-wrapper\">\n        <div id=\"loader\"></div>\n        <div class=\"loader-section section-left\"></div>\n        <div class=\"loader-section section-right\"></div>\n    </div>\n    <!--Navigation-->\n    <div class=\"navbar-fixed\">\n        <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n            <div class=\"container\">\n                <div class=\"nav-wrapper\">\n                    <a ng-href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                    <ul class=\"right hide-on-med-and-down\">\n                        <li><a ng-href=\"#!/register\">Register</a></li>\n                        <li><a ng-href=\"#!/login\">Login</a></li>\n                    </ul>\n                    <ul id=\"nav-mobile\" class=\"side-nav\">\n                        <li><a ng-href=\"#!/register\">Register</a></li>\n                        <li><a ng-href=\"#!/login\">Login</a></li>\n                    </ul>\n                    <a ng-href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n                </div>\n            </div>\n        </nav>\n    </div>\n    <!--Intro and service-->\n    <div id=\"intro\" class=\"section scrollspy\">\n        <div class=\"container\">\n            <div class=\"row\">\n                <div class=\"col s12 principal-btn\">\n                    <h2 class=\"center header text_h2\"> Create your <span class=\"span_h2\"> poll </span>and get results instantly! Visualize data in a way you've never did before! <span class=\"span_h2\">Create your poll now !</span></h2>\n                    <a ng-href=\"#!/register\">\n                        <button class=\"btn voted\" name=\"action\">Create Poll\n                            <i class=\"material-icons right\">chevron_right</i>\n                        </button>\n                    </a>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"center promo promo-example\">\n                        <i class=\"mdi-image-flash-on\"></i>\n                        <h5 class=\"promo-caption\">Speeds Up Decisions</h5>\n                        <p class=\"light center\">Do you have a question and need quick results? Get people's opinon and take a fast decision! </p>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"center promo promo-example\">\n                        <i class=\"mdi-social-group\"></i>\n                        <h5 class=\"promo-caption\">User Experience Focused</h5>\n                        <p class=\"light center\">Easy to use, responsive and simple data visualitzation about the poll results.</p>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"center promo promo-example\">\n                        <i class=\"mdi-hardware-desktop-windows\"></i>\n                        <h5 class=\"promo-caption\">Duplicate Checking Options:</h5>\n                        <ul class=\"light center\">\n                            <li>IP Duplication Checking</li>\n                            <li>Cookie Browser Duplication Checking</li>\n                            <li>Login Duplication Checking</li>\n                        </ul>\n                    </div>\n                </div>\n            </div>\n        </div>\n    </div>\n    <!--Card Polls-->\n    <div class=\"section scrollspy\" id=\"work\">\n        <div class=\"container\">\n            <h2 class=\"header text_b\">Polls</h2>\n            <div class=\"row\">\n                <div class=\"col s12 m4 l4\" ng-repeat=\"poll in polls\">\n                    <div class=\"card\">\n                        <div class=\"card-image waves-effect waves-block waves-light\">\n                            <a href=\"#!/poll/{{poll._id}}\"><img class=\"thumbnail-card\" ng-src=\"https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360\"></a>\n                        </div>\n                        <div class=\"card-content\">\n                            <span class=\"title-nowrap card-title activator grey-text text-darken-4\">{{poll.question}}</span>\n                            <p><a href=\"#!/poll/{{poll._id}}\">Go to poll</a></p>\n                        </div>\n                        <div class=\"card-reveal\">\n                            <span class=\"card-title grey-text text-darken-4\">{{poll.question}}<i class=\"mdi-navigation-close right\"></i></span>\n                            <p>Vote options:</p>\n                            <p ng-repeat=\"option in poll.options\">{{option.option}}</p>\n                        </div>\n                    </div>\n                </div>                \n            </div>\n        </div>\n    </div>\n    <footer id=\"contact\" class=\"page-footer default_color scrollspy\">\n        <div class=\"container\">\n            <div class=\"row\">\n                <div class=\"col l3 s12\">\n                    <h5 class=\"white-text\">Social</h5>\n                    <ul>\n                        <li>\n                            <a class=\"white-text\" ng-href=\"#\">\n                            <i class=\"small fa fa-facebook-square white-text\"></i> Facebook \n                        </a>\n                        </li>\n                        <li>\n                            <a class=\"white-text\" ng-href=\"https://github.com/jalbertsr\">\n                            <i class=\"small fa fa-github-square white-text\"></i> Github \n                        </a>\n                        </li>\n                    </ul>\n                </div>\n            </div>\n        </div>\n        <div class=\"footer-copyright default_color\">\n            <div class=\"container\">\n                Made by <a class=\"white-text\" ng-href=\"#\">Joan Albert Segura</a>. Done with <a class=\"white-text\" ng-href=\"http://materializecss.com/\">materializecss</a>\n            </div>\n        </div>\n    </footer>\n</body>"
+const htmlHome = "<body id=\"top\" class=\"scrollspy\">\n    <!-- Pre Loader -->\n    <div id=\"loader-wrapper\">\n        <div id=\"loader\"></div>\n        <div class=\"loader-section section-left\"></div>\n        <div class=\"loader-section section-right\"></div>\n    </div>\n    <!-- logged navigation -->\n    <div ng-if=\"loggedUser\" class=\"navbar-fixed\">\n        <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n            <div class=\"container\">\n                <div class=\"nav-wrapper\">\n                    <a ng-href=\"/\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                    <ul class=\"right hide-on-med-and-down\">\n                        <li><a ng-href=\"#!/username/{{idUser}}\">Profile</a></li>\n                        <li><a ng-click=\"logout()\" class=\"logout-click\">Logout</a></li>\n                    </ul>\n                    <ul id=\"nav-mobile\" class=\"side-nav\">\n                        <li><a ng-href=\"#!/username/{{idUser}}\">Profile</a></li>\n                        <li><a ng-click=\"logout()\" class=\"logout-click\">Logout</a></li>\n                    </ul>\n                    <a ng-href=\"nav-mobile\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n                </div>\n            </div>\n        </nav>\n    </div>\n    <!--Not logged Navigation-->\n    <div ng-if=\"!loggedUser\" class=\"navbar-fixed\">\n        <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n            <div class=\"container\">\n                <div class=\"nav-wrapper\">\n                    <a ng-href=\"/\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                    <ul class=\"right hide-on-med-and-down\">\n                        <li><a ng-href=\"#!/register\">Register</a></li>\n                        <li><a ng-href=\"#!/login\">Login</a></li>\n                    </ul>\n                    <ul id=\"nav-mobile\" class=\"side-nav\">\n                        <li><a ng-href=\"#!/register\">Register</a></li>\n                        <li><a ng-href=\"#!/login\">Login</a></li>\n                    </ul>\n                    <a ng-href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n                </div>\n            </div>\n        </nav>\n    </div>\n    <!--Intro and service-->\n    <div id=\"intro\" class=\"section scrollspy\">\n        <div class=\"container\">\n            <div class=\"row\">\n                <div class=\"col s12 principal-btn\">\n                    <h2 class=\"center header text_h2\"> Create your <span class=\"span_h2\"> poll </span>and get results instantly! Visualize data in a way you've never did before! <span class=\"span_h2\">Create your poll now !</span></h2>\n                    <a ng-href=\"#!/register\">\n                        <button class=\"btn voted\" name=\"action\">Create Poll\n                            <i class=\"material-icons right\">chevron_right</i>\n                        </button>\n                    </a>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"center promo promo-example\">\n                        <i class=\"mdi-image-flash-on\"></i>\n                        <h5 class=\"promo-caption\">Speeds Up Decisions</h5>\n                        <p class=\"light center\">Do you have a question and need quick results? Get people's opinon and take a fast decision! </p>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"center promo promo-example\">\n                        <i class=\"mdi-social-group\"></i>\n                        <h5 class=\"promo-caption\">User Experience Focused</h5>\n                        <p class=\"light center\">Easy to use, responsive and simple data visualitzation about the poll results.</p>\n                    </div>\n                </div>\n                <div class=\"col s12 m4 l4\">\n                    <div class=\"center promo promo-example\">\n                        <i class=\"mdi-hardware-desktop-windows\"></i>\n                        <h5 class=\"promo-caption\">Duplicate Vote Checking :</h5>\n                        <ul class=\"light center\">\n                            <li>Cookie Browser Duplication Checking</li>\n                            <li>Login Duplication Checking</li>\n                        </ul>\n                    </div>\n                </div>\n            </div>\n        </div>\n    </div>\n    <!--Card Polls-->\n    <div class=\"section scrollspy\" id=\"work\">\n        <div class=\"container\">\n            <h2 class=\"header text_b\">Polls</h2>\n            <div class=\"row\">\n                <div class=\"col s12 m4 l4\" ng-repeat=\"poll in polls\">\n                    <div class=\"card\">\n                        <div class=\"card-image waves-effect waves-block waves-light\">\n                            <a href=\"#!/poll/{{poll._id}}\"><img class=\"thumbnail-card\" ng-src=\"https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360\"></a>\n                        </div>\n                        <div class=\"card-content\">\n                            <span class=\"title-nowrap card-title activator grey-text text-darken-4\">{{poll.question}}</span>\n                            <p><a href=\"#!/poll/{{poll._id}}\">Go to poll</a></p>\n                        </div>\n                        <div class=\"card-reveal\">\n                            <span class=\"card-title grey-text text-darken-4\">{{poll.question}}<i class=\"mdi-navigation-close right\"></i></span>\n                            <p>Vote options:</p>\n                            <p ng-repeat=\"option in poll.options\">{{option.option}}</p>\n                        </div>\n                    </div>\n                </div>                \n            </div>\n        </div>\n    </div>\n    <footer id=\"contact\" class=\"page-footer default_color scrollspy\">\n        <div class=\"container\">\n            <div class=\"row\">\n                <div class=\"col l3 s12\">\n                    <h5 class=\"white-text\">Social</h5>\n                    <ul>\n                        <li>\n                            <a class=\"white-text\" ng-href=\"#\">\n                            <i class=\"small fa fa-facebook-square white-text\"></i> Facebook \n                        </a>\n                        </li>\n                        <li>\n                            <a class=\"white-text\" ng-href=\"https://github.com/jalbertsr\">\n                            <i class=\"small fa fa-github-square white-text\"></i> Github \n                        </a>\n                        </li>\n                    </ul>\n                </div>\n            </div>\n        </div>\n        <div class=\"footer-copyright default_color\">\n            <div class=\"container\">\n                Made by <a class=\"white-text\" ng-href=\"#\">Joan Albert Segura</a>. Done with <a class=\"white-text\" ng-href=\"http://materializecss.com/\">materializecss</a>\n            </div>\n        </div>\n    </footer>\n</body>"
 
 function configRouteHome ($routeProvider) {
   $routeProvider
@@ -59663,11 +59668,11 @@ module.exports = configRouteHome
 function loginController (AuthService, $location) {
   this.login = (e) => {
     e.preventDefault()
-    AuthService.login(this.username, this.password)
-      .then(success => {
-        if (success) {
+    AuthService.login(this.email, this.password)
+      .then(data => {
+        if (data.success) {
           Materialize.toast('Succesfully logged!', 1000)
-          $location.path('/login')
+          $location.path(`/username/${data.id}`)
         } else {
           Materialize.toast('Try again!', 1000)
         }
@@ -59680,7 +59685,7 @@ module.exports = loginController
 },{}],107:[function(require,module,exports){
 const path = require('path')
 
-const htmlLogin = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row signup\">\n    <div id=\"signup\">\n        <div class=\"container signup-screen row\">\n            <div class=\"s3 offset-s6\">\n                <div class=\"space-bot text-center\">\n                    <h1 class=\"title-color\">Login</h1>\n                    <div class=\"divider\"></div>\n                </div>\n            </div>\n            <div class=\"s6 offset-s2\">\n                <form class=\"form-register\" ng-submit=\"vm.login($event)\" action=\"/login/\" method=\"POST\" novalidate>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"email\" type=\"email\" name=\"email\" ng-model=\"vm.email\" class=\"validate\" required>\n                        <label for=\"email\">Email</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-login.email.$error.email\">Your email is invalid.</p>\n                    </div>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"password\" type=\"password\" name=\"password\" ng-model=\"vm.password\" ng-minlength='6' class=\"validate\" required>\n                        <label for=\"password\">Password</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-login.password.$error.minlength || form.password.$invalid\">Your password must be at least 6 characters.</p>\n                    </div>\n                    <div class=\"space-top text-center col s8\">\n                        <button type=\"submit\" ng-disabled=\"form-login.$invalid\" class=\"waves-effect waves-light btn done default-color\">\n                            <i class=\"material-icons left demo-color\">done</i> Login\n                        </button>\n                    </div>\n                </form>\n            </div>\n        </div>\n    </div>\n</div>"
+const htmlLogin = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row signup\">\n    <div id=\"signup\">\n        <div class=\"container signup-screen row\">\n            <div class=\"s3 offset-s6\">\n                <div class=\"space-bot text-center\">\n                    <h1 class=\"title-color\">Login</h1>\n                    <div class=\"divider\"></div>\n                </div>\n            </div>\n            <div class=\"s6 offset-s2\">\n                <form class=\"form-register\" ng-submit=\"vm.login($event)\" novalidate>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"email\" type=\"email\" name=\"email\" ng-model=\"vm.email\" class=\"validate\" required>\n                        <label for=\"email\">Email</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-login.email.$error.email\">Your email is invalid.</p>\n                    </div>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"password\" type=\"password\" name=\"password\" ng-model=\"vm.password\" ng-minlength='6' class=\"validate\" required>\n                        <label for=\"password\">Password</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-login.password.$error.minlength || form.password.$invalid\">Your password must be at least 6 characters.</p>\n                    </div>\n                    <div class=\"space-top text-center col s8\">\n                        <button type=\"submit\" ng-disabled=\"form-login.$invalid\" class=\"waves-effect waves-light btn done default-color\">\n                            <i class=\"material-icons left demo-color\">done</i> Login\n                        </button>\n                    </div>\n                </form>\n            </div>\n        </div>\n    </div>\n</div>"
 
 function configLogin ($routeProvider) {
   $routeProvider
@@ -59696,7 +59701,7 @@ module.exports = configLogin
 },{"path":89}],108:[function(require,module,exports){
 'use strict'
 
-function privateAreaController ($scope, $routeParams, dataService) {
+function privateAreaController ($scope, $routeParams, $location, dataService, AuthService) {
   const modal = document.getElementById('info-modal')
   const btn = document.getElementById('info-activate')
   const btnClose = document.getElementById('btnClose')
@@ -59704,7 +59709,6 @@ function privateAreaController ($scope, $routeParams, dataService) {
 
   let optionNumber = 3
   $scope.userID = $routeParams.id
-  console.log($scope.userID)
 
   btn.onclick = function () {
     modal.style.display = 'block'
@@ -59740,12 +59744,16 @@ function privateAreaController ($scope, $routeParams, dataService) {
       .catch(console.log)
   }
 
+  $scope.logout = () => {
+    AuthService.logout()
+    $location.path('/')
+  }
+
   /* -------- LOAD USER POLLS API -------- */
 
   dataService.getUserPolls($scope.userID)
     .then((response) => {
       $scope.userPolls = response.data.ownedPolls
-      console.log($scope.userPolls)
     })
     .catch(console.log)
 }
@@ -59755,7 +59763,7 @@ module.exports = privateAreaController
 },{}],109:[function(require,module,exports){
 const path = require('path')
 
-const htmlPrivateArea = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/\">Logout</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/\">Logout</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row create-poll\">\n    <div class=\"col l6 offset-s2 s9\">\n        <form class=\"form-register\" name=\"poll\" action=\"/privateArea/\" method=\"POST\" novalidate>\n            <input type=\"hidden\" name=\"userID\" value=\"{{userID}}\">\n            <p class=\"title-create-style  create-poll-title\">Create your poll</p>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"question\" ng-model=\"question\" type=\"text\" name=\"question\" class=\"validate\" required>\n                <label for=\"question\">Type your question here</label>\n            </div>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"option1\" ng-model=\"option1\" type=\"text\" name=\"option1\" required>\n                <label for=\"option1\">Option 1</label>\n            </div>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"option2\" ng-model=\"option2\" type=\"text\" name=\"option2\" required>\n                <label for=\"option2\">Option 2</label>\n            </div>\n            <div class=\"add-margin  input-field col s8\">\n                <span id=\"addOption\" class=\"info-pointer\"><i class=\"material-icons info-icon\">add</i><label class=\" info-pointer label-add\">Add another option</label></span>\n            </div>\n            <div class=\"add-margin input-field col s8\">\n                <p>Allow multiple poll answers:</p>\n                <div class=\"switch\">\n                    <label class=\"multiple-vote-space\">\n                        No\n                        <input type=\"checkbox\" name=\"allowMoreThanOne\">\n                        <span class=\"lever\"></span> Yes\n                    </label>\n                </div>\n            </div>\n            <div class=\"input-field duplicaton-top-space col s8 row\">\n                <div class=\"select-duplication col s11\">\n                    <select name=\"duplicationChecking\">\n                        <option value=\"none\" disabled selected>Choose checking option:</option>\n                        <option value=\"none\">No Duplication Checking</option>\n                        <option value=\"login\">Login Duplication Checking </option>\n                        <option value=\"cookie\">Cookie Browser Duplication Checking</option>\n                    </select>\n                </div>\n                <div class=\"col s1\">\n                    <span id=\"info-activate\" class=\"info-pointer\">\n                        <a><i class=\"material-icons info-icon\">info_outline</i></a>\n                    </span>\n                </div>\n            </div>\n            <div class=\"select-duplication col s8\">\n                <button onclick=\"Materialize.toast('Poll created!', 1000)\" ng-disabled=\"form-poll.$invalid || form-register.$pending\" class=\"btn voted btn-poll\">Create Poll\n                    <i class=\"material-icons right\">send</i>\n                </button>\n            </div>\n        </form>\n        <!-- begin info modal -->\n        <div id=\"info-modal\" class=\"modal\">\n            <div class=\"modal-content\">\n                <h4 class=\"modal-title\">Duplication Checking Info</h4>\n                <p><strong>Browser Cookie Duplication Checking</strong> - Duplicate votes will be disallowed based on the browser of the user, allowing multiple votes from the same IP address.</p>\n                <p><strong>Require User Sign In to Vote</strong> - Voting is not allowed unless the voter is signed into their Suffragium account.</p>\n                <p><strong>No Duplication Checking</strong> - Duplication checking will be disabled and users can vote as many times as they would like.</p>\n            </div>\n            <div class=\"modal-footer\">\n                <span><a id=\"btnClose\" class=\"modal-action btn-flat\">Ok</a></span>\n            </div>\n        </div>\n        <!-- end info modal -->\n    </div>\n    <!-- begin my polls -->\n    <div class=\"col l5 offset-l1 offset-s2 s9\">\n        <p class=\"title-create-style owned-polls\"> My polls </p>\n        <div class=\"personal-polls row\" ng-repeat=\"poll in userPolls\" id=\"{{poll.uid._id}}\">\n            <a href=\"#!/poll/{{poll.uid._id}}\">\n                <p class=\"question-own-poll\">{{poll.uid.question}}</p>\n            </a>\n            <div class=\"switch col l8 s8\">\n                <label>\n                    Close\n                    <input type=\"checkbox\" ng-change=\"updateStatus(poll.uid)\" ng-model=\"poll.uid.pollInfo.status\" ng-checked=\"{{poll.uid.pollInfo.status}}\">\n                    <span class=\"lever\"></span> Open\n                </label>\n            </div>\n            <div class=\"col l4 s4\" ng-click=\"deletePoll($event)\">\n                <span class=\"info-icon info-pointer\"><i class=\"material-icons\">delete</i></span>\n            </div>\n        </div>\n    </div>\n    <!-- end my polls -->\n</div>"
+const htmlPrivateArea = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a ng-href=\"/\">Home</a></li>\n                    <li><a ng-click=\"logout()\" class=\"logout-click\">Logout</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a ng-href=\"/\">Home</a></li>\n                    <li><a ng-click=\"logout()\" class=\"logout-click\">Logout</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row create-poll\">\n    <div class=\"col l6 offset-s2 s9\">\n        <form class=\"form-register\" name=\"poll\" action=\"/privateArea/\" method=\"POST\" novalidate>\n            <input type=\"hidden\" name=\"userID\" value=\"{{userID}}\">\n            <p class=\"title-create-style  create-poll-title\">Create your poll</p>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"question\" ng-model=\"question\" type=\"text\" name=\"question\" class=\"validate\" required>\n                <label for=\"question\">Type your question here</label>\n            </div>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"option1\" ng-model=\"option1\" type=\"text\" name=\"option1\" required>\n                <label for=\"option1\">Option 1</label>\n            </div>\n            <div class=\"input-field col s8\">\n                <input class=\"input-border-color\" id=\"option2\" ng-model=\"option2\" type=\"text\" name=\"option2\" required>\n                <label for=\"option2\">Option 2</label>\n            </div>\n            <div class=\"add-margin  input-field col s8\">\n                <span id=\"addOption\" class=\"info-pointer\"><i class=\"material-icons info-icon\">add</i><label class=\" info-pointer label-add\">Add another option</label></span>\n            </div>\n            <div class=\"add-margin input-field col s8\">\n                <p>Allow multiple poll answers:</p>\n                <div class=\"switch\">\n                    <label class=\"multiple-vote-space\">\n                        No\n                        <input type=\"checkbox\" name=\"allowMoreThanOne\">\n                        <span class=\"lever\"></span> Yes\n                    </label>\n                </div>\n            </div>\n            <div class=\"input-field duplicaton-top-space col s8 row\">\n                <div class=\"select-duplication col s11\">\n                    <select name=\"duplicationChecking\">\n                        <option value=\"none\" disabled selected>Choose checking option:</option>\n                        <option value=\"none\">No Duplication Checking</option>\n                        <option value=\"login\">Login Duplication Checking </option>\n                        <option value=\"cookie\">Cookie Browser Duplication Checking</option>\n                    </select>\n                </div>\n                <div class=\"col s1\">\n                    <span id=\"info-activate\" class=\"info-pointer\">\n                        <a><i class=\"material-icons info-icon\">info_outline</i></a>\n                    </span>\n                </div>\n            </div>\n            <div class=\"select-duplication col s8\">\n                <button onclick=\"Materialize.toast('Poll created!', 1000)\" ng-disabled=\"form-poll.$invalid || form-register.$pending\" class=\"btn voted btn-poll\">Create Poll\n                    <i class=\"material-icons right\">send</i>\n                </button>\n            </div>\n        </form>\n        <!-- begin info modal -->\n        <div id=\"info-modal\" class=\"modal\">\n            <div class=\"modal-content\">\n                <h4 class=\"modal-title\">Duplication Checking Info</h4>\n                <p><strong>Browser Cookie Duplication Checking</strong> - Duplicate votes will be disallowed based on the browser of the user, allowing multiple votes from the same IP address.</p>\n                <p><strong>Require User Sign In to Vote</strong> - Voting is not allowed unless the voter is signed into their Suffragium account.</p>\n                <p><strong>No Duplication Checking</strong> - Duplication checking will be disabled and users can vote as many times as they would like.</p>\n            </div>\n            <div class=\"modal-footer\">\n                <span><a id=\"btnClose\" class=\"modal-action btn-flat\">Ok</a></span>\n            </div>\n        </div>\n        <!-- end info modal -->\n    </div>\n    <!-- begin my polls -->\n    <div class=\"col l5 offset-l1 offset-s2 s9\">\n        <p class=\"title-create-style owned-polls\"> My polls </p>\n        <div class=\"personal-polls row\" ng-repeat=\"poll in userPolls\" id=\"{{poll.uid._id}}\">\n            <a href=\"#!/poll/{{poll.uid._id}}\">\n                <p class=\"question-own-poll\">{{poll.uid.question}}</p>\n            </a>\n            <div class=\"switch col l8 s8\">\n                <label>\n                    Close\n                    <input type=\"checkbox\" ng-change=\"updateStatus(poll.uid)\" ng-model=\"poll.uid.pollInfo.status\" ng-checked=\"{{poll.uid.pollInfo.status}}\">\n                    <span class=\"lever\"></span> Open\n                </label>\n            </div>\n            <div class=\"col l4 s4\" ng-click=\"deletePoll($event)\">\n                <span class=\"info-icon info-pointer\"><i class=\"material-icons\">delete</i></span>\n            </div>\n        </div>\n    </div>\n    <!-- end my polls -->\n</div>"
 
 function privateAreaConfig ($routeProvider) {
   $routeProvider
@@ -59772,13 +59780,18 @@ module.exports = privateAreaConfig
 
 'use strict'
 
-function registerController (AuthService) {
+function registerController (AuthService, $location) {
   this.register = (e) => {
     e.preventDefault()
-    AuthService.register(this.username, this.password)
+    AuthService.register(this.email, this.password)
       .then(data => {
-        if (data.succes) Materialize.toast('Registered!', 1000)
-        else Materialize.toast('Email in use!', 1000)
+        console.log(data)
+        if (data.success) {
+          Materialize.toast('Registered!', 1000)
+          $location.path(`/login/`)
+        } else {
+          Materialize.toast('Email in use!', 1000)
+        }
       })
   }
 }
@@ -59788,7 +59801,7 @@ module.exports = registerController
 },{}],111:[function(require,module,exports){
 const path = require('path')
 
-const htmlRegister = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row signup\">\n    <div id=\"signup\">\n        <div class=\"container signup-screen row\">\n            <div class=\"s3 offset-s6\">\n                <div class=\"space-bot text-center\">\n                    <h1 class=\"title-color\">Register</h1>\n                    <div class=\"divider\"></div>\n                </div>\n            </div>\n            <div class=\"s6 offset-s2\">\n                <form class=\"form-register\" name=\"register\"  method=\"POST\" action=\"/register/\" ng-submit=\"vm.register($event)\" novalidate>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"email\" type=\"email\" name=\"email\" ng-model=\"vm.email\" class=\"validate\" required>\n                        <label for=\"email\">Email</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-register.email.$error.email\">Your email is invalid.</p>\n                    </div>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"password\" type=\"password\" name=\"password\" ng-model=\"vm.password\" ng-minlength='6' class=\"validate\" required>\n                        <label for=\"password\">Password</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-register.password.$error.minlength || form.password.$invalid\">Your password must be at least 6 characters.</p>\n                    </div>\n                    <div class=\"space-top text-center col s8\">\n                        <button ng-disabled=\"form-register.$invalid\" class=\"waves-effect waves-light btn done default-color\">\n                            <i class=\"material-icons left demo-color\">done</i> Register\n                        </button>\n                    </div>\n                </form>\n            </div>\n        </div>\n    </div>\n</div>"
+const htmlRegister = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container row signup\">\n    <div id=\"signup\">\n        <div class=\"container signup-screen row\">\n            <div class=\"s3 offset-s6\">\n                <div class=\"space-bot text-center\">\n                    <h1 class=\"title-color\">Register</h1>\n                    <div class=\"divider\"></div>\n                </div>\n            </div>\n            <div class=\"s6 offset-s2\">\n                <form class=\"form-register\" name=\"register\" ng-submit=\"vm.register($event)\" novalidate>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"email\" type=\"email\" name=\"email\" ng-model=\"vm.email\" class=\"validate\" required>\n                        <label for=\"email\">Email</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-register.email.$error.email\">Your email is invalid.</p>\n                    </div>\n                    <div class=\"input-field col s8\">\n                        <input class=\"input-border-color\" id=\"password\" type=\"password\" name=\"password\" ng-model=\"vm.password\" ng-minlength='6' class=\"validate\" required>\n                        <label for=\"password\">Password</label>\n                        <p class=\"alert alert-danger\" ng-show=\"form-register.password.$error.minlength || form.password.$invalid\">Your password must be at least 6 characters.</p>\n                    </div>\n                    <div class=\"space-top text-center col s8\">\n                        <button ng-disabled=\"form-register.$invalid\" class=\"waves-effect waves-light btn done default-color\">\n                            <i class=\"material-icons left demo-color\">done</i> Register\n                        </button>\n                    </div>\n                </form>\n            </div>\n        </div>\n    </div>\n</div>"
 
 function registerConfig ($routeProvider) {
   $routeProvider
@@ -59900,7 +59913,7 @@ module.exports=["rgba(54, 162, 235, 1)",
 "rgba(176,224,230,1)",
 "rgba(95,158,160,1)"]
 },{}],114:[function(require,module,exports){
-/* global angular */
+/* global angular, Materialize */
 'use strict'
 
 const backgroundColor = require('./colors/backgroundColors.json')
@@ -59909,7 +59922,7 @@ const FileSaver = require('file-saver')
 const Chart = require('chart.js')
 const socket = require('socket.io-client').connect({'force new connection': true})
 
-function resultsController ($scope, $rootScope, $routeParams, dataService) {
+function resultsController ($scope, $rootScope, $routeParams, dataService, AuthService, $location) {
   const { id } = $routeParams
   let myChart
   let saveCount = 0
@@ -60036,6 +60049,11 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
     })
   }
 
+  $scope.logout = () => {
+    AuthService.logout()
+    $location.path('/')
+  }
+
   $scope.getVal = (radioSelected) => {
     $scope.radioSelected = radioSelected
   }
@@ -60051,11 +60069,17 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
       const idsVote = optionsVoted.join('_')
 
       dataService.vote(id, idsVote)
-        .then(console.log)
+        .then((msg) => {
+          console.log(msg)
+          if (msg.status === 200) Materialize.toast('Voted!', 1000)
+        })
         .catch(console.log)
     } else {
       dataService.vote(id, $scope.radioSelected)
-        .then(console.log)
+        .then((msg) => {
+          console.log(msg)
+          if (msg.status === 200) Materialize.toast('Voted!', 1000)
+        })
         .catch(console.log)
     }
     // emit vote
@@ -60183,7 +60207,7 @@ module.exports = resultsController
 },{"./colors/backgroundColors.json":112,"./colors/borderColors.json":113,"chart.js":13,"file-saver":79,"socket.io-client":91}],115:[function(require,module,exports){
 const path = require('path')
 
-const htmlResults = "<div class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container-results\">\n    <div class=\"row\">\n        <div class=\"row col s11 l4 offset-l1 container-question\">\n            <p class=\"title-results-style title-size\">{{question}}</p>\n            <!-- begin checkbox option -->\n            <div ng-if=\"allowMoreThanOne\" class=\"container space\" ng-repeat=\"option in options\" id=\"{{option._id}}\">\n                <input type=\"checkbox\" id=\"option{{$index}}\" ng-model=\"option.selected\" ng-true-value=\"'{{option._id}}'\" ng-false-value=\"false\" >\n                <label for=\"option{{$index}}\">{{option.option}}</label>\n            </div>\n            <!-- end checkbox option -->\n             <!-- begin radio option -->\n            <div ng-if=\"!allowMoreThanOne\" class=\"container space\" ng-repeat=\"option in options\" id=\"{{option._id}}\">\n                <input class=\"with-gap\" type=\"radio\" id=\"option{{$index}}\" name=\"radio\" ng-model=\"changedVal\" value=\"{{$index}}\" ng-checked=\"false\" ng-click=\"getVal(option._id)\">\n                <label for=\"option{{$index}}\">{{option.option}}</label>\n            </div>\n            <!-- end radio option -->\n            <button ng-if=\"status\" class=\"btn voted\" type=\"submit\" name=\"action\" onclick=\"Materialize.toast('Voted!', 1000)\" ng-click=\"vote(options)\">Vote\n                <i class=\"material-icons right\">send</i>\n            </button>\n            <div class=\"title-results-style\">\n                <p class=\"info-results\">Total Votes: {{totalVotes}}</p>\n                <p>Status: {{status ? 'Open' : 'Closed'}}</p>\n            </div>\n        </div>\n        <div class=\"col s11 l6 row container-graph\">\n            <canvas class=\"canvas-graph-style\" height=\"120\" width=\"230\" id=\"myChart\"></canvas>\n            <div class=\"input-field col s6\">\n                <select ng-change=\"changeChart(chartType)\" ng-model=\"chartType\">\n                  <option value=\"\" disabled>Choose Chart</option>\n                  <option value=\"bar\">Bar Chart</option>\n                  <option value=\"horizontalBar\">Horitzontal Bar Chart</option>\n                  <option value=\"line\">Line Chart</option>\n                  <option value=\"doughnut\">Doughnut Chart</option>\n                  <option value=\"pie\">Pie Chart</option>\n                </select>\n            </div>\n            <div class=\"col offset-s3 s3 save-button\">\n                <button class=\"btn voted\" ng-click=\"saveChart()\" name=\"action\" onclick=\"Materialize.toast('Saved!', 1000)\">Save\n                    <i class=\"material-icons right\">file_download</i>\n                </button>\n            </div>\n        </div>\n    </div>\n</div>"
+const htmlResults = "<!-- logged -->\n<div ng-if=\"loggedUser\" class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/username/{{idUser}}\">Profile</a></li>\n                    <li><a ng-click=\"logout()\" class=\"logout-click\">Logout</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/username/{{idUser}}\">Profile</a></li>\n                    <li><a ng-click=\"logout()\" class=\"logout-click\">Logout</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<!-- not logged -->\n<div ng-if=\"!loggedUser\" class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a href=\"#\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul id=\"nav-mobile\" class=\"side-nav\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n                <a href=\"#\" data-activates=\"nav-mobile\" class=\"button-collapse\"><i class=\"mdi-navigation-menu\"></i></a>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container-results\">\n    <div class=\"row\">\n        <div class=\"row col s11 l4 offset-l1 container-question\">\n            <p class=\"title-results-style title-size\">{{question}}</p>\n            <!-- begin checkbox option -->\n            <div ng-if=\"allowMoreThanOne\" class=\"container space\" ng-repeat=\"option in options\" id=\"{{option._id}}\">\n                <input type=\"checkbox\" id=\"option{{$index}}\" ng-model=\"option.selected\" ng-true-value=\"'{{option._id}}'\" ng-false-value=\"false\" >\n                <label for=\"option{{$index}}\">{{option.option}}</label>\n            </div>\n            <!-- end checkbox option -->\n             <!-- begin radio option -->\n            <div ng-if=\"!allowMoreThanOne\" class=\"container space\" ng-repeat=\"option in options\" id=\"{{option._id}}\">\n                <input class=\"with-gap\" type=\"radio\" id=\"option{{$index}}\" name=\"radio\" ng-model=\"changedVal\" value=\"{{$index}}\" ng-checked=\"false\" ng-click=\"getVal(option._id)\">\n                <label for=\"option{{$index}}\">{{option.option}}</label>\n            </div>\n            <!-- end radio option -->\n            <button ng-if=\"status\" class=\"btn voted\" type=\"submit\" name=\"action\" ng-click=\"vote(options)\">Vote\n                <i class=\"material-icons right\">send</i>\n            </button>\n            <div class=\"title-results-style\">\n                <p class=\"info-results\">Total Votes: {{totalVotes}}</p>\n                <p>Status: {{status ? 'Open' : 'Closed'}}</p>\n            </div>\n        </div>\n        <div class=\"col s11 l6 row container-graph\">\n            <canvas class=\"canvas-graph-style\" height=\"120\" width=\"230\" id=\"myChart\"></canvas>\n            <div class=\"input-field col s6\">\n                <select ng-change=\"changeChart(chartType)\" ng-model=\"chartType\">\n                  <option value=\"\" disabled>Choose Chart</option>\n                  <option value=\"bar\">Bar Chart</option>\n                  <option value=\"horizontalBar\">Horitzontal Bar Chart</option>\n                  <option value=\"line\">Line Chart</option>\n                  <option value=\"doughnut\">Doughnut Chart</option>\n                  <option value=\"pie\">Pie Chart</option>\n                </select>\n            </div>\n            <div class=\"col offset-s3 s3 save-button\">\n                <button class=\"btn voted\" ng-click=\"saveChart()\" name=\"action\" onclick=\"Materialize.toast('Saved!', 1000)\">Save\n                    <i class=\"material-icons right\">file_download</i>\n                </button>\n            </div>\n        </div>\n    </div>\n</div>"
 
 function resultsConfig ($routeProvider) {
   $routeProvider
@@ -60231,6 +60255,53 @@ module.exports = AuthInterceptor
 
 },{}],118:[function(require,module,exports){
 'use strict'
+
+const AuthService = ($http, $rootScope, StorageService, jwtHelper) => {
+  const register = (email, password) => {
+    return $http.post(`/register/`, {email, password})
+                .then(res => res.data)
+  }
+
+  const isLoggedIn = () => {
+    const token = StorageService.getToken()
+    if (!token) return false
+    return true
+  }
+
+  const setCredentials = (token) => {
+    const tokenPayload = jwtHelper.decodeToken(token)
+    $rootScope.loggedUser = tokenPayload.email
+    $rootScope.idUser = tokenPayload.id
+  }
+
+  const login = (email, password) => {
+    return $http.post('/login/', {email, password})
+              .then(res => res.data)
+              .then(data => {
+                StorageService.saveToken(data.token)
+                setCredentials(data.token)
+                return data
+              })
+  }
+
+  const logout = (email, password) => {
+    StorageService.removeToken()
+    delete $rootScope.loggedUser
+  }
+
+  return {
+    register,
+    isLoggedIn,
+    login,
+    logout,
+    setCredentials
+  }
+}
+
+module.exports = AuthService
+
+},{}],119:[function(require,module,exports){
+'use strict'
 const StorageService = ($window) => {
   const saveToken = (token) => {
     $window.localStorage.setItem('authToken', token)
@@ -60248,52 +60319,6 @@ const StorageService = ($window) => {
 }
 
 module.exports = StorageService
-
-},{}],119:[function(require,module,exports){
-'use strict'
-
-const authService = ($http, $rootScope, StorageService, jwtHelper) => {
-  const register = (username, password) => {
-    return $http.post(`/register`, {username, password})
-                .then(res => res.data)
-  }
-
-  const isLoggedIn = () => {
-    const token = StorageService.getToken()
-    if (!token) return false
-    return true
-  }
-
-  const setCredentials = (token) => {
-    const tokenPayload = jwtHelper.decodeToken(token)
-    $rootScope.loggedUser = tokenPayload.username
-  }
-
-  const login = (username, password) => {
-    return $http.post('/login', {username, password})
-              .then(res => res.data)
-              .then(data => {
-                StorageService.saveToken(data.token)
-                setCredentials(data.token)
-                return data.success
-              })
-  }
-
-  const logout = (username, password) => {
-    StorageService.removeToken()
-    delete $rootScope.loggedUser
-  }
-
-  return {
-    register,
-    isLoggedIn,
-    login,
-    logout,
-    setCredentials
-  }
-}
-
-module.exports = authService
 
 },{}],120:[function(require,module,exports){
 'use strict'

@@ -1,4 +1,4 @@
-/* global angular */
+/* global angular, Materialize */
 'use strict'
 
 const backgroundColor = require('./colors/backgroundColors.json')
@@ -7,7 +7,7 @@ const FileSaver = require('file-saver')
 const Chart = require('chart.js')
 const socket = require('socket.io-client').connect({'force new connection': true})
 
-function resultsController ($scope, $rootScope, $routeParams, dataService) {
+function resultsController ($scope, $rootScope, $routeParams, dataService, AuthService, $location) {
   const { id } = $routeParams
   let myChart
   let saveCount = 0
@@ -134,6 +134,11 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
     })
   }
 
+  $scope.logout = () => {
+    AuthService.logout()
+    $location.path('/')
+  }
+
   $scope.getVal = (radioSelected) => {
     $scope.radioSelected = radioSelected
   }
@@ -149,11 +154,17 @@ function resultsController ($scope, $rootScope, $routeParams, dataService) {
       const idsVote = optionsVoted.join('_')
 
       dataService.vote(id, idsVote)
-        .then(console.log)
+        .then((msg) => {
+          console.log(msg)
+          if (msg.status === 200) Materialize.toast('Voted!', 1000)
+        })
         .catch(console.log)
     } else {
       dataService.vote(id, $scope.radioSelected)
-        .then(console.log)
+        .then((msg) => {
+          console.log(msg)
+          if (msg.status === 200) Materialize.toast('Voted!', 1000)
+        })
         .catch(console.log)
     }
     // emit vote

@@ -486,4 +486,6 @@ div.principal-btn{
     border: 2px solid #2196f3;
 }
 
-.title-nowrap {}
+.logout-click {
+    cursor:pointer;
+}

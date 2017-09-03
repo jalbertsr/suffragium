@@ -5,12 +5,31 @@
         <div class="loader-section section-left"></div>
         <div class="loader-section section-right"></div>
     </div>
-    <!--Navigation-->
-    <div class="navbar-fixed">
+    <!-- logged navigation -->
+    <div ng-if="loggedUser" class="navbar-fixed">
         <nav id="nav_f" class="default_color" role="navigation">
             <div class="container">
                 <div class="nav-wrapper">
-                    <a ng-href="#" id="logo-container" class="brand-logo">Suffragium</a>
+                    <a ng-href="/" id="logo-container" class="brand-logo">Suffragium</a>
+                    <ul class="right hide-on-med-and-down">
+                        <li><a ng-href="#!/username/{{idUser}}">Profile</a></li>
+                        <li><a ng-click="logout()" class="logout-click">Logout</a></li>
+                    </ul>
+                    <ul id="nav-mobile" class="side-nav">
+                        <li><a ng-href="#!/username/{{idUser}}">Profile</a></li>
+                        <li><a ng-click="logout()" class="logout-click">Logout</a></li>
+                    </ul>
+                    <a ng-href="nav-mobile" data-activates="nav-mobile" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <!--Not logged Navigation-->
+    <div ng-if="!loggedUser" class="navbar-fixed">
+        <nav id="nav_f" class="default_color" role="navigation">
+            <div class="container">
+                <div class="nav-wrapper">
+                    <a ng-href="/" id="logo-container" class="brand-logo">Suffragium</a>
                     <ul class="right hide-on-med-and-down">
                         <li><a ng-href="#!/register">Register</a></li>
                         <li><a ng-href="#!/login">Login</a></li>
@@ -53,9 +72,8 @@
                 <div class="col s12 m4 l4">
                     <div class="center promo promo-example">
                         <i class="mdi-hardware-desktop-windows"></i>
-                        <h5 class="promo-caption">Duplicate Checking Options:</h5>
+                        <h5 class="promo-caption">Duplicate Vote Checking :</h5>
                         <ul class="light center">
-                            <li>IP Duplication Checking</li>
                             <li>Cookie Browser Duplication Checking</li>
                             <li>Login Duplication Checking</li>
                         </ul>

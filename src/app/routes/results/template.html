@@ -1,4 +1,24 @@
-<div class="navbar-fixed">
+<!-- logged -->
+<div ng-if="loggedUser" class="navbar-fixed">
+    <nav id="nav_f" class="default_color" role="navigation">
+        <div class="container">
+            <div class="nav-wrapper">
+                <a href="#" id="logo-container" class="brand-logo">Suffragium</a>
+                <ul class="right hide-on-med-and-down">
+                    <li><a href="#!/username/{{idUser}}">Profile</a></li>
+                    <li><a ng-click="logout()" class="logout-click">Logout</a></li>
+                </ul>
+                <ul id="nav-mobile" class="side-nav">
+                    <li><a href="#!/username/{{idUser}}">Profile</a></li>
+                    <li><a ng-click="logout()" class="logout-click">Logout</a></li>
+                </ul>
+                <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+            </div>
+        </div>
+    </nav>
+</div>
+<!-- not logged -->
+<div ng-if="!loggedUser" class="navbar-fixed">
     <nav id="nav_f" class="default_color" role="navigation">
         <div class="container">
             <div class="nav-wrapper">
@@ -32,7 +52,7 @@
                 <label for="option{{$index}}">{{option.option}}</label>
             </div>
             <!-- end radio option -->
-            <button ng-if="status" class="btn voted" type="submit" name="action" onclick="Materialize.toast('Voted!', 1000)" ng-click="vote(options)">Vote
+            <button ng-if="status" class="btn voted" type="submit" name="action" ng-click="vote(options)">Vote
                 <i class="material-icons right">send</i>
             </button>
             <div class="title-results-style">

@@ -1,8 +1,8 @@
 'use strict'
 
-const authService = ($http, $rootScope, StorageService, jwtHelper) => {
-  const register = (username, password) => {
-    return $http.post(`/register`, {username, password})
+const AuthService = ($http, $rootScope, StorageService, jwtHelper) => {
+  const register = (email, password) => {
+    return $http.post(`/register/`, {email, password})
                 .then(res => res.data)
   }
 
@@ -14,20 +14,21 @@ const authService = ($http, $rootScope, StorageService, jwtHelper) => {
 
   const setCredentials = (token) => {
     const tokenPayload = jwtHelper.decodeToken(token)
-    $rootScope.loggedUser = tokenPayload.username
+    $rootScope.loggedUser = tokenPayload.email
+    $rootScope.idUser = tokenPayload.id
   }
 
-  const login = (username, password) => {
-    return $http.post('/login', {username, password})
+  const login = (email, password) => {
+    return $http.post('/login/', {email, password})
               .then(res => res.data)
               .then(data => {
                 StorageService.saveToken(data.token)
                 setCredentials(data.token)
-                return data.success
+                return data
               })
   }
 
-  const logout = (username, password) => {
+  const logout = (email, password) => {
     StorageService.removeToken()
     delete $rootScope.loggedUser
   }
@@ -41,4 +42,4 @@ const authService = ($http, $rootScope, StorageService, jwtHelper) => {
   }
 }
 
-module.exports = authService
+module.exports = AuthService

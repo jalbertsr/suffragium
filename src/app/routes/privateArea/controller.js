@@ -1,6 +1,6 @@
 'use strict'
 
-function privateAreaController ($scope, $routeParams, dataService) {
+function privateAreaController ($scope, $routeParams, $location, dataService, AuthService) {
   const modal = document.getElementById('info-modal')
   const btn = document.getElementById('info-activate')
   const btnClose = document.getElementById('btnClose')
@@ -8,7 +8,6 @@ function privateAreaController ($scope, $routeParams, dataService) {
 
   let optionNumber = 3
   $scope.userID = $routeParams.id
-  console.log($scope.userID)
 
   btn.onclick = function () {
     modal.style.display = 'block'
@@ -44,12 +43,16 @@ function privateAreaController ($scope, $routeParams, dataService) {
       .catch(console.log)
   }
 
+  $scope.logout = () => {
+    AuthService.logout()
+    $location.path('/')
+  }
+
   /* -------- LOAD USER POLLS API -------- */
 
   dataService.getUserPolls($scope.userID)
     .then((response) => {
       $scope.userPolls = response.data.ownedPolls
-      console.log($scope.userPolls)
     })
     .catch(console.log)
 }
