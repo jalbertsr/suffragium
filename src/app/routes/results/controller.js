@@ -12,7 +12,6 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
   let myChart
   let saveCount = 0
   let dataOptions
-  $scope.allreadyVote = true
   $scope.currentChart = 'bar'
 
   /* -------- SOCKET UPDATE ALL ----------- */
@@ -41,7 +40,6 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
     .catch(console.log)
     const ctx = document.getElementById('myChart')
     myChart.destroy()
-    console.log($scope.currentChart)
 
     switch ($scope.currentChart) {
       case 'line':
@@ -169,8 +167,6 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
     }
     // emit vote
     socket.emit('newVote', {'voto': 'click'})
-    $scope.allreadyVote = false
-    console.log($scope.allreadyVote)
   }
 
   /* ------------ ON CHANGE ACTIONS -------- */
@@ -236,10 +232,6 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
           data: pieData
         })
     }
-    // const imgBase64 = setTimeout(function () {
-    //   const graphUrl = ctx.toDataURL()
-    //   console.log(graphUrl)
-    // }, 60000)
   }
 
   /* --------------- DEFAULT BAR CHART ---------------- */
@@ -276,6 +268,13 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
       options: options
     })
     clearTimeout(initialGraph)
+    const imgBase64 = setTimeout(function () {
+      const graphUrl = ctx.toDataURL()
+      console.log(graphUrl)
+      dataService.updateImage(id, graphUrl)
+        .then(console.log)
+      clearTimeout(imgBase64)
+    }, 500)
   }, 800)
 }
 

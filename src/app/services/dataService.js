@@ -30,13 +30,19 @@ const getData = ($http) => {
     return $http.delete(url)
   }
 
+  const updateImage = (id, imgUrl) => {
+    const url = `/api/updateImg/${id}`
+    return $http.post(url, { imgUrl })
+  }
+
   return {
     getInfoPoll,
     vote,
     getPolls,
     updateStatus,
     getUserPolls,
-    deletePoll
+    deletePoll,
+    updateImage
   }
 }
 

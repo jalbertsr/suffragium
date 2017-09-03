@@ -12,11 +12,11 @@
                 <div class="nav-wrapper">
                     <a ng-href="/" id="logo-container" class="brand-logo">Suffragium</a>
                     <ul class="right hide-on-med-and-down">
-                        <li><a ng-href="#!/username/{{idUser}}">Profile</a></li>
+                        <li><a ng-href="#!/username/{{idUser}}">Account</a></li>
                         <li><a ng-click="logout()" class="logout-click">Logout</a></li>
                     </ul>
                     <ul id="nav-mobile" class="side-nav">
-                        <li><a ng-href="#!/username/{{idUser}}">Profile</a></li>
+                        <li><a ng-href="#!/username/{{idUser}}">Account</a></li>
                         <li><a ng-click="logout()" class="logout-click">Logout</a></li>
                     </ul>
                     <a ng-href="nav-mobile" data-activates="nav-mobile" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
@@ -90,7 +90,7 @@
                 <div class="col s12 m4 l4" ng-repeat="poll in polls">
                     <div class="card">
                         <div class="card-image waves-effect waves-block waves-light">
-                            <a href="#!/poll/{{poll._id}}"><img class="thumbnail-card" ng-src="https://ph-files.imgix.net/a6347c7b-ebcd-45b4-bb09-3032f72c13d3?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=540.8450704225352&h=360"></a>
+                            <a href="#!/poll/{{poll._id}}"><img class="thumbnail-card" ng-src="{{poll.imgBase64}}"></a>
                         </div>
                         <div class="card-content">
                             <span class="title-nowrap card-title activator grey-text text-darken-4">{{poll.question}}</span>

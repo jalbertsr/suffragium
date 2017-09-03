@@ -34,12 +34,11 @@ const PollSchema = new mongoose.Schema({
       type: Number,
       default: 0
     }
+  },
+  imgBase64: {
+    type: String,
+    default: ''
   }
 }, { collection })
-
-// PollSchema.pre('save', function (next) {
-//   email(this.email, 'Your record has changed');
-//   next()
-// })
 
 module.exports = mongoose.model('Poll', PollSchema)
