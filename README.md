@@ -33,20 +33,20 @@ You need to create an **.env** file in the project root with the following envir
 - Mongodb path and database to use:
 
   ```
-  DB_URI=mongodb://localhost:27017/NAME_DB
+  urlDb=mongodb://localhost:27017/NAME_DB
   ```
+- Secret key to encrypt cookies:
 
+  ```
+  SECRETKEY=XXXXXXXXXX
+  ```
+  
 - Secret word to encrypt users' passwords:
 
   ```
   SECRET=XXXXXXXXXX
   ```
   
-- Secret key to encrypt cookies:
-
-  ```
-  SECRETKEY=XXXXXXX
-  ```
 ---
 
 ### To run the server:
@@ -57,7 +57,7 @@ $ npm start
 
 All dependencies will be installed automatically
 
-## To run in dev mode or debugg mode:
+### To run in dev mode or debugg mode:
 
 ```
 $npm run dev
@@ -66,7 +66,6 @@ $npm run dev
 ```
 $npm dev:debug
 ```
-
 
 
 ## API
