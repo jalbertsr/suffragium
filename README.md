@@ -37,10 +37,10 @@ You need to create an **.env** file in the project root with the following envir
   SECRET=XXXXXX
   ```
   
-- Secret word to ecnrypt cookies: 
+- Secret word to encrypt cookies:
 
-  ```
-  SECRETKEY=XXXXXX 
+  ```
+  SECRETKEY=XXXXXX
   ```
  
 ---
