@@ -14,6 +14,12 @@
 # [Suffragium](https://suffragium.herokuapp.com/#!/)
 
 ---
+
+## Installation
+
+You need to have installed [NodeJS](https://nodejs.org/) with [npm](https://www.npmjs.com/), [bower](https://bower.io/) and [MongoDB](https://www.mongodb.com/)
+
+---
 ### Configuration `env` file
 
 You need to create an **.env** file in the project root with the following environment variables configured:
@@ -39,9 +45,37 @@ You need to create an **.env** file in the project root with the following envir
 - Secret key to encrypt cookies:
 
   ```
-  SECRETKEY=XXXXXXX
+  SECRETKEY=XXXXXXX
   ```
-  
+---
+
+### To run the server:
+
+```
+$ npm start
+```
+
+All dependencies will be installed automatically
+
+## To run in dev mode or debugg mode:
+
+```
+$npm run dev
+```
+
+```
+$npm dev:debug
+```
+
+
+
+## API
+
+The server part has multiple **API endpoints** using several routes:
+
+- `/api` -> Serves the internal data of the users and players.
+- `/auth` -> Serves the authentication options, register and login.
+
 ---
 
 ## Built with:
