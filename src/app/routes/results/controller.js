@@ -36,6 +36,15 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
       })
 
       console.log(response)
+
+      // $scope.$apply(() => {
+      //   $scope.question = response.data.question
+      //   $scope.status = response.data.pollInfo.status
+      //   $scope.totalVotes = response.data.pollInfo.totalVotes
+      //   $scope.options = response.data.options
+      //   $scope.allowMoreThanOne = response.data.config.allowMoreThanOne
+      //   $scope.chartVotes = $scope.chartVotes
+      // })
     })
     .catch(console.log)
     const ctx = document.getElementById('myChart')
