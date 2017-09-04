@@ -59952,75 +59952,67 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
 
       console.log(response)
 
-      // $scope.$apply(() => {
-      //   $scope.question = response.data.question
-      //   $scope.status = response.data.pollInfo.status
-      //   $scope.totalVotes = response.data.pollInfo.totalVotes
-      //   $scope.options = response.data.options
-      //   $scope.allowMoreThanOne = response.data.config.allowMoreThanOne
-      //   $scope.chartVotes = $scope.chartVotes
-      // })
-    })
-    .catch(console.log)
-    const ctx = document.getElementById('myChart')
-    myChart.destroy()
+      const ctx = document.getElementById('myChart')
+      myChart.destroy()
 
-    switch ($scope.currentChart) {
-      case 'line':
-      case 'horizontalBar':
-      case 'bar':
-        Chart.defaults.global.legend.display = false
-        let data = {
-          labels: $scope.chartOptions.map((option) => {
-            return truncateString(option)
-          }),
-          datasets: [{
-            label: '',
-            data: $scope.chartVotes,
-            backgroundColor: backgroundColor,
-            borderColor: borderColor,
-            borderWidth: 1
-          }]
-        }
-
-        let options = {
-          scales: {
-            xAxes: [{
-              ticks: {
-                beginAtZero: true
-              }
-            }],
-            yAxes: [{
-              ticks: {
-                beginAtZero: true
-              }
+      switch ($scope.currentChart) {
+        case 'line':
+        case 'horizontalBar':
+        case 'bar':
+          Chart.defaults.global.legend.display = false
+          let data = {
+            labels: $scope.chartOptions.map((option) => {
+              return truncateString(option)
+            }),
+            datasets: [{
+              label: '',
+              data: $scope.chartVotes,
+              backgroundColor: backgroundColor,
+              borderColor: borderColor,
+              borderWidth: 1
             }]
           }
-        }
 
-        myChart = new Chart(ctx, {
-          type: $scope.currentChart,
-          data: data,
-          options: options
-        })
-        break
-      case 'doughnut':
-      case 'pie':
-        Chart.defaults.global.legend.display = true
-        let pieData = {
-          datasets: [{
-            data: $scope.chartVotes,
-            backgroundColor: backgroundColor,
-            borderColor: borderColor
-          }],
-          labels: $scope.chartOptions
-        }
+          let options = {
+            scales: {
+              xAxes: [{
+                ticks: {
+                  beginAtZero: true
+                }
+              }],
+              yAxes: [{
+                ticks: {
+                  beginAtZero: true
+                }
+              }]
+            }
+          }
 
-        myChart = new Chart(ctx, {
-          type: $scope.currentChart,
-          data: pieData
-        })
-    }
+          myChart = new Chart(ctx, {
+            type: $scope.currentChart,
+            data: data,
+            options: options
+          })
+          break
+        case 'doughnut':
+        case 'pie':
+          Chart.defaults.global.legend.display = true
+          let pieData = {
+            datasets: [{
+              data: $scope.chartVotes,
+              backgroundColor: backgroundColor,
+              borderColor: borderColor
+            }],
+            labels: $scope.chartOptions
+          }
+
+          myChart = new Chart(ctx, {
+            type: $scope.currentChart,
+            data: pieData
+          })
+      }
+    })
+    .catch(console.log)
   })
 
   /* ------------ START API CALLS ------------ */
