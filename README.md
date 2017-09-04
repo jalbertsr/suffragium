@@ -14,7 +14,6 @@
 # [Suffragium](https://suffragium.herokuapp.com/#!/)
 
 ---
-
 ### Configuration `env` file
 
 You need to create an **.env** file in the project root with the following environment variables configured:
@@ -34,15 +33,15 @@ You need to create an **.env** file in the project root with the following envir
 - Secret word to encrypt users' passwords:
 
   ```
-  SECRET=XXXXXX
+  SECRET=XXXXXXXXXX
+  ```
+  
+- Secret key to encrypt cookies:
+
+  ```
+  SECRETKEY=XXXXXXX
   ```
   
-- Secret word to encrypt cookies:
-
-  ```
-  SECRETKEY=XXXXXX
-  ```
- 
 ---
 
 ## Built with:
