@@ -35,8 +35,6 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
         return obj.votes
       })
 
-      console.log(response)
-
       const ctx = document.getElementById('myChart')
       myChart.destroy()
 
@@ -119,8 +117,6 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
       $scope.chartVotes = dataOptions.map((obj) => {
         return obj.votes
       })
-
-      console.log(response)
     })
     .catch(console.log)
 
@@ -155,16 +151,19 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
       dataService.vote(id, idsVote)
         .then((msg) => {
           console.log(msg)
-          if (msg.status === 200) Materialize.toast('Voted!', 1000)
+          if (msg.status === 200) Materialize.toast('Voted!', 2000)
         })
         .catch(console.log)
     } else {
       dataService.vote(id, $scope.radioSelected)
         .then((msg) => {
           console.log(msg)
-          if (msg.status === 200) Materialize.toast('Voted!', 1000)
+          if (msg.status === 200) Materialize.toast('Voted!', 2000)
         })
-        .catch(console.log)
+        .catch((msg) => {
+          Materialize.toast('Allready Voted!', 2000)
+          console.log(msg)
+        })
     }
     // emit vote
     socket.emit('newVote', {'voto': 'click'})

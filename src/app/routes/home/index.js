@@ -6,7 +6,8 @@ function configRouteHome ($routeProvider) {
   $routeProvider
     .when('/', {
       template: htmlHome,
-      controller: 'homeController'
+      controller: 'homeController',
+      controllerAs: 'vm'
     })
 }
 
