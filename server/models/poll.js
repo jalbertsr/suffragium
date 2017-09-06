@@ -38,14 +38,6 @@ const PollSchema = new mongoose.Schema({
   imgBase64: {
     type: String,
     default: ''
-  },
-  createdAt: {
-    type: Number,
-    default: +Date.now()
-  },
-  finishAt: {
-    type: Number,
-    default: (+Date.now() + 604800000)
   }
 }, { collection })
 

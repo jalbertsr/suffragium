@@ -7,8 +7,6 @@ const handleVote = (req, res) => {
 
   req.session.votes.push(pollId)
 
-  console.log('handleVote', req.session)
-
   const promises = numVoteOptions.map((voteId) => {
     return Poll.update({ _id: pollId, 'options._id': voteId }, {$inc: {'options.$.votes': 1}})
   })

@@ -3,9 +3,9 @@ const Poll = require('../../../models/poll.js')
 const handleGetPolls = (req, res) => {
   Poll
     .find()
+    .sort({ 'pollInfo.totalVotes': -1 })
     .limit(6)
     .then((info) => {
-      // console.info('poll find ok', info)
       res.json(info)
     })
     .catch((err) => {

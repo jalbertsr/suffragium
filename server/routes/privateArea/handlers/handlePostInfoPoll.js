@@ -13,7 +13,7 @@ const handlePostInfoPoll = (req, res) => {
   let duplicationChecking = 'none'
   let allowMoreThanOne = false
 
-  if (req.body.duplicationChecking) duplicationChecking = req.body.duplicationChecking
+  if (req.body.time) duplicationChecking = req.body.duplicationChecking
   if (req.body.allowMoreThanOne) allowMoreThanOne = true
 
   const options = []

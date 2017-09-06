@@ -10,10 +10,9 @@ function loginController (AuthService, $location) {
         if (data.success) {
           Materialize.toast('Succesfully logged!', 2000)
           $location.path(`/username/${data.id}`)
-        } else {
-          Materialize.toast('Try again!', 2000)
         }
       })
+      .catch(() => Materialize.toast('Try again!', 2000))
   }
 }
 

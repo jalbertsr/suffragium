@@ -35,7 +35,6 @@ app.use(cookieSession({
 }))
 
 app.use((req, res, next) => {
-  console.log('use middleware', req.session)
   req.session.votes = req.session.votes || []
   next()
 })
