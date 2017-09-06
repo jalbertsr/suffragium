@@ -8,10 +8,10 @@ function loginController (AuthService, $location) {
     AuthService.login(this.email, this.password)
       .then(data => {
         if (data.success) {
-          Materialize.toast('Succesfully logged!', 1000)
+          Materialize.toast('Succesfully logged!', 2000)
           $location.path(`/username/${data.id}`)
         } else {
-          Materialize.toast('Try again!', 1000)
+          Materialize.toast('Try again!', 2000)
         }
       })
   }

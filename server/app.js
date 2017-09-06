@@ -40,8 +40,6 @@ app.use((req, res, next) => {
   next()
 })
 
-app.locals.ips = []
-
 const configSocket = require('./socketio/configSocket.js')
 
 const server = app.listen(PORT)

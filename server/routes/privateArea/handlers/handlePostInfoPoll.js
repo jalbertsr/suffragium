@@ -38,15 +38,14 @@ const handlePostInfoPoll = (req, res) => {
   const _id = poll._id
 
   poll.save()
-    .then((info) => console.log(info))
-    .catch(() => res.send(`FAIL to add poll w/ id ${_id}`))
-
-  User
-    .findByIdAndUpdate(userID, {$push: {ownedPolls: {uid: _id}}})
-    .then((data) => {
-      res.redirect(`/#!/poll/${_id}`)
+    .then(() => {
+      User.findByIdAndUpdate(userID, {$push: {ownedPolls: {uid: _id}}})
+        .then((data) => {
+          res.redirect(`/#!/poll/${_id}`)
+        })
+        .catch(() => res.send(`FAIL to add the poll w/ id ${_id} to the user w/ id ${userID}`))
     })
-    .catch(() => res.send(`FAIL to add the poll w/ id ${_id} to the user w/ id ${userID}`))
+    .catch(() => res.send(`FAIL to add poll w/ id ${_id}`))
 }
 
 module.exports = handlePostInfoPoll

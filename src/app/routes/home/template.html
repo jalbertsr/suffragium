@@ -11,15 +11,15 @@
             <div class="container">
                 <div class="nav-wrapper">
                     <a ng-href="/" id="logo-container" class="brand-logo">Suffragium</a>
+                    <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
                     <ul class="right hide-on-med-and-down">
                         <li><a ng-href="#!/username/{{idUser}}">Account</a></li>
                         <li><a ng-click="logout()" class="logout-click">Logout</a></li>
                     </ul>
-                    <ul id="nav-mobile" class="side-nav">
+                    <ul class="side-nav" id="mobile-demo">
                         <li><a ng-href="#!/username/{{idUser}}">Account</a></li>
                         <li><a ng-click="logout()" class="logout-click">Logout</a></li>
                     </ul>
-                    <a ng-href="nav-mobile" data-activates="nav-mobile" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
                 </div>
             </div>
         </nav>
@@ -30,15 +30,15 @@
             <div class="container">
                 <div class="nav-wrapper">
                     <a ng-href="/" id="logo-container" class="brand-logo">Suffragium</a>
+                    <a data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
                     <ul class="right hide-on-med-and-down">
                         <li><a ng-href="#!/register">Register</a></li>
                         <li><a ng-href="#!/login">Login</a></li>
                     </ul>
-                    <ul id="nav-mobile" class="side-nav">
+                    <ul class="side-nav" id="mobile-demo">
                         <li><a ng-href="#!/register">Register</a></li>
                         <li><a ng-href="#!/login">Login</a></li>
                     </ul>
-                    <a ng-href="#" data-activates="nav-mobile" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
                 </div>
             </div>
         </nav>
@@ -48,8 +48,15 @@
         <div class="container">
             <div class="row">
                 <div class="col s12 principal-btn">
-                    <h2 class="center header text_h2"> Create your <span class="span_h2"> poll </span>and get results instantly! Visualize data in a way you've never did before! <span class="span_h2">Create your poll now !</span></h2>
-                    <a ng-href="#!/register">
+                    <h2 class="center header text_h2"> Create your <span class="span_h2"> poll </span>and get results instantly! Visualize data in a way you've never done before! <span class="span_h2">Create your poll now !</span></h2>
+                    <!-- not logged - go register -->
+                    <a ng-if="!loggedUser" ng-href="#!/register">
+                        <button class="btn voted" name="action">Create Poll
+                            <i class="material-icons right">chevron_right</i>
+                        </button>
+                    </a>
+                    <!-- logged - go create -->
+                    <a ng-if="loggedUser" ng-href="#!/username/idUser">
                         <button class="btn voted" name="action">Create Poll
                             <i class="material-icons right">chevron_right</i>
                         </button>

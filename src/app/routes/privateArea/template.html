@@ -2,16 +2,16 @@
     <nav id="nav_f" class="default_color" role="navigation">
         <div class="container">
             <div class="nav-wrapper">
-                <a href="#" id="logo-container" class="brand-logo">Suffragium</a>
+                <a ng-href="/" id="logo-container" class="brand-logo">Suffragium</a>
+                <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
                 <ul class="right hide-on-med-and-down">
                     <li><a ng-href="/">Home</a></li>
                     <li><a ng-click="logout()" class="logout-click">Logout</a></li>
                 </ul>
-                <ul id="nav-mobile" class="side-nav">
+                <ul class="side-nav" id="mobile-demo">
                     <li><a ng-href="/">Home</a></li>
                     <li><a ng-click="logout()" class="logout-click">Logout</a></li>
                 </ul>
-                <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
             </div>
         </div>
     </nav>
@@ -49,10 +49,12 @@
             <div class="input-field duplicaton-top-space col s8 row">
                 <div class="select-duplication col s11">
                     <select name="duplicationChecking">
-                        <option value="none" disabled selected>Choose checking option:</option>
-                        <option value="none">No Duplication Checking</option>
-                        <option value="login" disabled>Login Duplication Checking </option>
-                        <option value="login" disabled>Ip Duplication Checking </option>
+                        <option value="none" disabled selected>Choose time:</option>
+                        <option value="1">3 minutes</option>
+                        <option value="2">10 minutes</option>
+                        <option value="3">1 hour</option>
+                        <option value="4">1 day</option>
+                        <option value="5">1 week</option>
                     </select>
                 </div>
                 <div class="col s1">
@@ -62,7 +64,7 @@
                 </div>
             </div>
             <div class="select-duplication col s8">
-                <button onclick="Materialize.toast('Poll created!', 1000)" ng-disabled="form-poll.$invalid || form-register.$pending" class="btn voted btn-poll">Create Poll
+                <button onclick="Materialize.toast('Poll created!', 2000)" ng-disabled="form-poll.$invalid || form-register.$pending" class="btn voted btn-poll">Create Poll
                     <i class="material-icons right">send</i>
                 </button>
             </div>

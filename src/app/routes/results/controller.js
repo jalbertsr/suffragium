@@ -150,19 +150,16 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
 
       dataService.vote(id, idsVote)
         .then((msg) => {
-          console.log(msg)
           if (msg.status === 200) Materialize.toast('Voted!', 2000)
         })
         .catch(console.log)
     } else {
       dataService.vote(id, $scope.radioSelected)
         .then((msg) => {
-          console.log(msg)
           if (msg.status === 200) Materialize.toast('Voted!', 2000)
         })
         .catch((msg) => {
           Materialize.toast('Allready Voted!', 2000)
-          console.log(msg)
         })
     }
     // emit vote
@@ -270,7 +267,6 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
     clearTimeout(initialGraph)
     const imgBase64 = setTimeout(function () {
       const graphUrl = ctx.toDataURL()
-      console.log(graphUrl)
       dataService.updateImage(id, graphUrl)
         .then(console.log)
       clearTimeout(imgBase64)
