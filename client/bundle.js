@@ -59633,7 +59633,6 @@ function homeController ($scope, dataService, AuthService, $location) {
   dataService.getPolls()
     .then((response) => {
       $scope.polls = response.data
-      console.log(response)
     })
     .catch(console.log)
 
@@ -59785,7 +59784,6 @@ function registerController (AuthService, $location) {
     e.preventDefault()
     AuthService.register(this.email, this.password)
       .then(data => {
-        console.log(data)
         if (data.success) {
           Materialize.toast('Registered!', 2000)
           $location.path(`/login/`)
@@ -60067,14 +60065,13 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
         .then((msg) => {
           if (msg.status === 200) Materialize.toast('Voted!', 2000)
         })
-        .catch(Materialize.toast('Allready Voted!', 2000))
+        .catch(console.log)
     } else {
       dataService.vote(id, $scope.radioSelected)
         .then((msg) => {
           if (msg.status === 200) Materialize.toast('Voted!', 2000)
         })
-        .catch(Materialize.toast('Allready Voted!', 2000)
-        )
+        .catch(Materialize.toast('Allready Voted!', 2000))
     }
     // emit vote
     socket.emit('newVote', {'voto': 'click'})

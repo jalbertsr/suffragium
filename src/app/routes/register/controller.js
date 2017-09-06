@@ -7,7 +7,6 @@ function registerController (AuthService, $location) {
     e.preventDefault()
     AuthService.register(this.email, this.password)
       .then(data => {
-        console.log(data)
         if (data.success) {
           Materialize.toast('Registered!', 2000)
           $location.path(`/login/`)
