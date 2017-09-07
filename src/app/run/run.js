@@ -1,3 +1,5 @@
+/* global $ */
+
 const run = ($rootScope, $location, StorageService, AuthService) => {
   if (AuthService.isLoggedIn()) {
     const token = StorageService.getToken()
@@ -5,9 +7,12 @@ const run = ($rootScope, $location, StorageService, AuthService) => {
   }
 
   $rootScope.$on('$routeChangeStart', function (event, next, current) {
-    console.log('route has changed')
+    $(document).ready(function () {
+      setTimeout(() => {
+        $('.button-collapse').sideNav()
+      }, 500)
+    })
     if (next && next.secure) {
-      console.log('this route is secured!!')
       if (!AuthService.isLoggedIn()) {
         $location.path('/login')
       }

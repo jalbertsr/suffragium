@@ -9,8 +9,6 @@
     "dev": "nodemon server/app.js",
     "dev:debug": "DEBUG=*,-nodemon*,-send*, npm run dev",
     "dev:debug:socket": "DEBUG=socket.io* npm run dev",
-    "build:scss": "node-sass client/scss/styles.scss  client/css/styles.css",
-    "build:scss:watch": "node-sass client/scss/styles.scss  client/css/styles.css --watch",
     "build:js": "browserify -t brfs src/app/main.js -o client/bundle.js",
     "build:js:watch": "watchify -t brfs src/app/main.js -o client/bundle.js -v"
   },
