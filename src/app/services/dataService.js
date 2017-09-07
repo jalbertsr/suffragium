@@ -5,9 +5,10 @@ const getData = ($http) => {
     return $http.get(url)
   }
 
-  const vote = (idPoll, idsVote) => {
+  const vote = (idPoll, idsVote, logged, duplicationChecking) => {
     const url = `/api/poll/${idPoll}/vote/${idsVote}`
-    return $http.put(url)
+    const data = { logged, duplicationChecking }
+    return $http.put(url, data)
   }
 
   const getPolls = () => {

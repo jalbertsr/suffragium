@@ -2,18 +2,12 @@ const Poll = require('../../../models/poll.js')
 const User = require('../../../models/user.js')
 
 const handlePostInfoPoll = (req, res) => {
-  // count number of property 'options' in a object
-  // const optionCounter = Object.keys(req.body).reduce((acc, option) => {
-  //   if (/option/.test(option)) acc++
-  //   return acc
-  // }, 0)
-
   const {question, userID} = req.body
-
+  console.log(req.body)
   let duplicationChecking = 'none'
   let allowMoreThanOne = false
 
-  if (req.body.time) duplicationChecking = req.body.duplicationChecking
+  if (req.body.duplicationChecking) duplicationChecking = req.body.duplicationChecking
   if (req.body.allowMoreThanOne) allowMoreThanOne = true
 
   const options = []

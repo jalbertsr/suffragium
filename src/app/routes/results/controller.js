@@ -41,7 +41,6 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
 
           myChart = ChartService.createBarChart($scope.currentChart, $scope.chartOptions, $scope.chartVotes, ctx)
         })
-      .catch(console.log)
     }
   })
 
@@ -54,6 +53,7 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
       $scope.totalVotes = response.data.pollInfo.totalVotes
       $scope.options = response.data.options
       $scope.allowMoreThanOne = response.data.config.allowMoreThanOne
+      $scope.duplicationChecking = response.data.config.duplicationChecking
 
       dataOptions = response.data.options
 
@@ -65,14 +65,17 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
         return obj.votes
       })
     })
-    .catch(console.log)
+
+  /* ------------ CHECK USER LOGGED ------- */
+
+  $scope.logged = AuthService.isLoggedIn()
 
   /* ------------ ON CLICK ACTIONS -------- */
 
   $scope.saveChart = () => {
     document.getElementById('myChart').toBlob((blob) => {
       saveCount++
-      FileSaver.saveAs(blob, `chart_${saveCount}.png`)
+      FileSaver.saveAs(blob, `${$scope.currentChart}Chart_${saveCount}.png`)
     })
   }
 
@@ -95,20 +98,22 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
       })
       const idsVote = optionsVoted.join('_')
 
-      dataService.vote(id, idsVote)
+      dataService.vote(id, idsVote, $scope.logged, $scope.duplicationChecking)
         .then((msg) => {
           if (msg.status === 200) Materialize.toast('Voted!', 2000)
         })
         .catch((msg) => {
           if (msg.status === 401) Materialize.toast('Already Voted!', 2000)
+          else if (msg.status === 403) Materialize.toast('Not logged!', 2000)
         })
     } else {
-      dataService.vote(id, $scope.radioSelected)
+      dataService.vote(id, $scope.radioSelected, $scope.logged, $scope.duplicationChecking)
         .then((msg) => {
           if (msg.status === 200) Materialize.toast('Voted!', 2000)
         })
         .catch((msg) => {
           if (msg.status === 401) Materialize.toast('Already Voted!', 2000)
+          else if (msg.status === 403) Materialize.toast('Not logged!', 2000)
         })
     }
     // emit vote
