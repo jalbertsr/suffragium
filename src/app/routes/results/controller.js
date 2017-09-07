@@ -1,13 +1,11 @@
 /* global angular, Materialize */
 'use strict'
 
-const backgroundColor = require('./colors/backgroundColors.json')
-const borderColor = require('./colors/borderColors.json')
 const FileSaver = require('file-saver')
 const Chart = require('chart.js')
 const socket = require('socket.io-client').connect({'force new connection': true})
 
-function resultsController ($scope, $rootScope, $routeParams, dataService, AuthService, $location) {
+function resultsController ($scope, $rootScope, $routeParams, dataService, AuthService, ChartService, $location) {
   const { id } = $routeParams
   let myChart
   let saveCount = 0
@@ -38,62 +36,7 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
       const ctx = document.getElementById('myChart')
       myChart.destroy()
 
-      switch ($scope.currentChart) {
-        case 'line':
-        case 'horizontalBar':
-        case 'bar':
-          Chart.defaults.global.legend.display = false
-          let data = {
-            labels: $scope.chartOptions.map((option) => {
-              return truncateString(option)
-            }),
-            datasets: [{
-              label: '',
-              data: $scope.chartVotes,
-              backgroundColor: backgroundColor,
-              borderColor: borderColor,
-              borderWidth: 1
-            }]
-          }
-
-          let options = {
-            scales: {
-              xAxes: [{
-                ticks: {
-                  beginAtZero: true
-                }
-              }],
-              yAxes: [{
-                ticks: {
-                  beginAtZero: true
-                }
-              }]
-            }
-          }
-
-          myChart = new Chart(ctx, {
-            type: $scope.currentChart,
-            data: data,
-            options: options
-          })
-          break
-        case 'doughnut':
-        case 'pie':
-          Chart.defaults.global.legend.display = true
-          let pieData = {
-            datasets: [{
-              data: $scope.chartVotes,
-              backgroundColor: backgroundColor,
-              borderColor: borderColor
-            }],
-            labels: $scope.chartOptions
-          }
-
-          myChart = new Chart(ctx, {
-            type: $scope.currentChart,
-            data: pieData
-          })
-      }
+      myChart = ChartService.createBarChart($scope.currentChart, $scope.chartOptions, $scope.chartVotes, ctx)
     })
     .catch(console.log)
   })
@@ -174,62 +117,16 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
     $scope.currentChart = chartType
     const ctx = document.getElementById('myChart')
     myChart.destroy()
-
     switch (chartType) {
       case 'line':
       case 'horizontalBar':
       case 'bar':
-        Chart.defaults.global.legend.display = false
-        let data = {
-          labels: $scope.chartOptions.map((option) => {
-            return truncateString(option)
-          }),
-          datasets: [{
-            label: '',
-            data: $scope.chartVotes,
-            backgroundColor: backgroundColor,
-            borderColor: borderColor,
-            borderWidth: 1
-          }]
-        }
-
-        let options = {
-          scales: {
-            xAxes: [{
-              ticks: {
-                beginAtZero: true
-              }
-            }],
-            yAxes: [{
-              ticks: {
-                beginAtZero: true
-              }
-            }]
-          }
-        }
-
-        myChart = new Chart(ctx, {
-          type: chartType,
-          data: data,
-          options: options
-        })
+        myChart = ChartService.createBarChart($scope.currentChart, $scope.chartOptions, $scope.chartVotes, ctx)
         break
       case 'doughnut':
       case 'pie':
-        Chart.defaults.global.legend.display = true
-        let pieData = {
-          datasets: [{
-            data: $scope.chartVotes,
-            backgroundColor: backgroundColor,
-            borderColor: borderColor
-          }],
-          labels: $scope.chartOptions
-        }
-
-        myChart = new Chart(ctx, {
-          type: chartType,
-          data: pieData
-        })
+        myChart = ChartService.createPieChart($scope.currentChart, $scope.chartOptions, $scope.chartVotes, ctx)
+        break
     }
   }
 
@@ -237,51 +134,15 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
   var initialGraph = setTimeout(() => {
     const ctx = document.getElementById('myChart')
     Chart.defaults.global.legend.display = false
+    myChart = ChartService.createBarChart($scope.currentChart, $scope.chartOptions, $scope.chartVotes, ctx)
 
-    let data = {
-      labels: $scope.chartOptions.map((option) => {
-        return truncateString(option)
-      }),
-      datasets: [{
-        label: '',
-        data: $scope.chartVotes,
-        backgroundColor: backgroundColor,
-        borderColor: borderColor,
-        borderWidth: 1
-      }]
-    }
-
-    let options = {
-      scales: {
-        yAxes: [{
-          ticks: {
-            beginAtZero: true
-          }
-        }]
-      }
-    }
-
-    myChart = new Chart(ctx, {
-      type: 'bar',
-      data: data,
-      options: options
-    })
     clearTimeout(initialGraph)
     const imgBase64 = setTimeout(function () {
       const graphUrl = ctx.toDataURL()
       dataService.updateImage(id, graphUrl)
-        .then(console.log)
       clearTimeout(imgBase64)
     }, 500)
   }, 800)
-}
-
-const truncateString = (initialString) => {
-  if (initialString.length > 12) {
-    const shortString = initialString.substring(0, 12)
-    return shortString + '...'
-  }
-  return initialString
 }
 
 module.exports = resultsController

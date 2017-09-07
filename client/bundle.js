@@ -59603,6 +59603,7 @@ const dataService = require('./services/dataService')
 const StorageService = require('./services/StorageService')
 const AuthService = require('./services/AuthService')
 const AuthInterceptor = require('./services/AuthInterceptor')
+const ChartService = require('./services/ChartService')
 
 const interceptor = require('./interceptor/interceptor')
 const run = require('./run/run')
@@ -59625,8 +59626,9 @@ angular.module('suffragium', [angularRoute, angularjwt])
   .factory('StorageService', StorageService)
   .factory('AuthService', AuthService)
   .factory('AuthInterceptor', AuthInterceptor)
+  .factory('ChartService', ChartService)
 
-},{"./interceptor/interceptor":102,"./routes/home/controller":104,"./routes/home/index":105,"./routes/login/controller":106,"./routes/login/index":107,"./routes/privateArea/controller":108,"./routes/privateArea/index":109,"./routes/register/controller":110,"./routes/register/index":111,"./routes/results/controller":114,"./routes/results/index":115,"./run/run":116,"./services/AuthInterceptor":117,"./services/AuthService":118,"./services/StorageService":119,"./services/dataService":120,"angular":7,"angular-jwt":3,"angular-route":5}],104:[function(require,module,exports){
+},{"./interceptor/interceptor":102,"./routes/home/controller":104,"./routes/home/index":105,"./routes/login/controller":106,"./routes/login/index":107,"./routes/privateArea/controller":108,"./routes/privateArea/index":109,"./routes/register/controller":110,"./routes/register/index":111,"./routes/results/controller":112,"./routes/results/index":113,"./run/run":114,"./services/AuthInterceptor":115,"./services/AuthService":116,"./services/ChartService":117,"./services/StorageService":118,"./services/dataService":121,"angular":7,"angular-jwt":3,"angular-route":5}],104:[function(require,module,exports){
 'use strict'
 
 function homeController ($scope, dataService, AuthService, $location) {
@@ -59813,114 +59815,14 @@ function registerConfig ($routeProvider) {
 module.exports = registerConfig
 
 },{"path":89}],112:[function(require,module,exports){
-module.exports=["rgba(54, 162, 235, 0.3)", 
-"rgba(255, 99, 132, 0.3)", 
-"rgba(255, 206, 86, 0.3)", 
-"rgba(75, 192, 192, 0.3)", 
-"rgba(153, 102, 255, 0.3)", 
-"rgba(255, 159, 64, 0.3)",
-"rgba(255,160,122,0.3)",
-"rgba(255,69,0,0.3)",
-"rgba(255,140,0,0.3)",
-"rgba(255,165,0,0.3)",
-"rgba(255,215,0,0.3)",
-"rgba(184,134,11,0.3)",
-"rgba(218,165,32,0.3)",
-"rgba(238,232,170,0.3)",
-"rgba(189,183,107,0.3)",
-"rgba(240,230,140,0.3)",
-"rgba(128,128,0,0.3)",
-"rgba(255,255,0,0.3)",
-"rgba(154,205,50,0.3)",
-"rgba(85,107,47,0.3)",
-"rgba(107,142,35,0.3)",
-"rgba(124,252,0,0.3)",
-"rgba(127,255,0,0.3)",
-"rgba(173,255,47,0.3)",
-"rgba(0,100,0,0.3)",
-"rgba(0,128,0,0.3)",
-"rgba(50,205,50,0.3)",
-"rgba(144,238,144,0.3)",
-"rgba(152,251,152,0.3)",
-"rgba(143,188,143,0.3)",
-"rgba(0,250,154,0.3)",
-"rgba(46,139,87,0.3)",
-"rgba(102,205,170,0.3)",
-"rgba(60,179,113,0.3)",
-"rgba(32,178,170,0.3)",
-"rgba(47,79,79,0.3)",
-"rgba(0,128,128,0.3)",
-"rgba(0,139,139,0.3)",
-"rgba(0,255,255,0.3)",
-"rgba(0,255,255,0.3)",
-"rgba(224,255,255,0.3)",
-"rgba(0,206,209,0.3)",
-"rgba(64,224,208,0.3)",
-"rgba(72,209,204,0.3)",
-"rgba(175,238,238,0.3)",
-"rgba(127,255,212,0.3)",
-"rgba(176,224,230,0.3)",
-"rgba(95,158,160,0.3)"]
-},{}],113:[function(require,module,exports){
-module.exports=["rgba(54, 162, 235, 1)", 
-"rgba(255, 99, 132, 1)", 
-"rgba(255, 206, 86, 1)", 
-"rgba(75, 192, 192, 1)", 
-"rgba(153, 102, 255, 1)", 
-"rgba(255, 159, 64, 1)",
-"rgba(255,160,122,1)",
-"rgba(255,69,0,1)",
-"rgba(255,140,0,1)",
-"rgba(255,165,0,1)",
-"rgba(255,215,0,1)",
-"rgba(184,134,11,1)",
-"rgba(218,165,32,1)",
-"rgba(238,232,170,1)",
-"rgba(189,183,107,1)",
-"rgba(240,230,140,1)",
-"rgba(128,128,0,1)",
-"rgba(255,255,0,1)",
-"rgba(154,205,50,1)",
-"rgba(85,107,47,1)",
-"rgba(107,142,35,1)",
-"rgba(124,252,0,1)",
-"rgba(127,255,0,1)",
-"rgba(173,255,47,1)",
-"rgba(0,100,0,1)",
-"rgba(0,128,0,1)",
-"rgba(50,205,50,1)",
-"rgba(144,238,144,1)",
-"rgba(152,251,152,1)",
-"rgba(143,188,143,1)",
-"rgba(0,250,154,1)",
-"rgba(46,139,87,1)",
-"rgba(102,205,170,1)",
-"rgba(60,179,113,1)",
-"rgba(32,178,170,1)",
-"rgba(47,79,79,1)",
-"rgba(0,128,128,1)",
-"rgba(0,139,139,1)",
-"rgba(0,255,255,1)",
-"rgba(0,255,255,1)",
-"rgba(224,255,255,1)",
-"rgba(0,206,209,1)",
-"rgba(64,224,208,1)",
-"rgba(72,209,204,1)",
-"rgba(175,238,238,1)",
-"rgba(127,255,212,1)",
-"rgba(176,224,230,1)",
-"rgba(95,158,160,1)"]
-},{}],114:[function(require,module,exports){
 /* global angular, Materialize */
 'use strict'
 
-const backgroundColor = require('./colors/backgroundColors.json')
-const borderColor = require('./colors/borderColors.json')
 const FileSaver = require('file-saver')
 const Chart = require('chart.js')
 const socket = require('socket.io-client').connect({'force new connection': true})
 
-function resultsController ($scope, $rootScope, $routeParams, dataService, AuthService, $location) {
+function resultsController ($scope, $rootScope, $routeParams, dataService, AuthService, ChartService, $location) {
   const { id } = $routeParams
   let myChart
   let saveCount = 0
@@ -59951,62 +59853,7 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
       const ctx = document.getElementById('myChart')
       myChart.destroy()
 
-      switch ($scope.currentChart) {
-        case 'line':
-        case 'horizontalBar':
-        case 'bar':
-          Chart.defaults.global.legend.display = false
-          let data = {
-            labels: $scope.chartOptions.map((option) => {
-              return truncateString(option)
-            }),
-            datasets: [{
-              label: '',
-              data: $scope.chartVotes,
-              backgroundColor: backgroundColor,
-              borderColor: borderColor,
-              borderWidth: 1
-            }]
-          }
-
-          let options = {
-            scales: {
-              xAxes: [{
-                ticks: {
-                  beginAtZero: true
-                }
-              }],
-              yAxes: [{
-                ticks: {
-                  beginAtZero: true
-                }
-              }]
-            }
-          }
-
-          myChart = new Chart(ctx, {
-            type: $scope.currentChart,
-            data: data,
-            options: options
-          })
-          break
-        case 'doughnut':
-        case 'pie':
-          Chart.defaults.global.legend.display = true
-          let pieData = {
-            datasets: [{
-              data: $scope.chartVotes,
-              backgroundColor: backgroundColor,
-              borderColor: borderColor
-            }],
-            labels: $scope.chartOptions
-          }
-
-          myChart = new Chart(ctx, {
-            type: $scope.currentChart,
-            data: pieData
-          })
-      }
+      myChart = ChartService.createBarChart($scope.currentChart, $scope.chartOptions, $scope.chartVotes, ctx)
     })
     .catch(console.log)
   })
@@ -60087,62 +59934,16 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
     $scope.currentChart = chartType
     const ctx = document.getElementById('myChart')
     myChart.destroy()
-
     switch (chartType) {
       case 'line':
       case 'horizontalBar':
       case 'bar':
-        Chart.defaults.global.legend.display = false
-        let data = {
-          labels: $scope.chartOptions.map((option) => {
-            return truncateString(option)
-          }),
-          datasets: [{
-            label: '',
-            data: $scope.chartVotes,
-            backgroundColor: backgroundColor,
-            borderColor: borderColor,
-            borderWidth: 1
-          }]
-        }
-
-        let options = {
-          scales: {
-            xAxes: [{
-              ticks: {
-                beginAtZero: true
-              }
-            }],
-            yAxes: [{
-              ticks: {
-                beginAtZero: true
-              }
-            }]
-          }
-        }
-
-        myChart = new Chart(ctx, {
-          type: chartType,
-          data: data,
-          options: options
-        })
+        myChart = ChartService.createBarChart($scope.currentChart, $scope.chartOptions, $scope.chartVotes, ctx)
         break
       case 'doughnut':
       case 'pie':
-        Chart.defaults.global.legend.display = true
-        let pieData = {
-          datasets: [{
-            data: $scope.chartVotes,
-            backgroundColor: backgroundColor,
-            borderColor: borderColor
-          }],
-          labels: $scope.chartOptions
-        }
-
-        myChart = new Chart(ctx, {
-          type: chartType,
-          data: pieData
-        })
+        myChart = ChartService.createPieChart($scope.currentChart, $scope.chartOptions, $scope.chartVotes, ctx)
+        break
     }
   }
 
@@ -60150,56 +59951,20 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
   var initialGraph = setTimeout(() => {
     const ctx = document.getElementById('myChart')
     Chart.defaults.global.legend.display = false
+    myChart = ChartService.createBarChart($scope.currentChart, $scope.chartOptions, $scope.chartVotes, ctx)
 
-    let data = {
-      labels: $scope.chartOptions.map((option) => {
-        return truncateString(option)
-      }),
-      datasets: [{
-        label: '',
-        data: $scope.chartVotes,
-        backgroundColor: backgroundColor,
-        borderColor: borderColor,
-        borderWidth: 1
-      }]
-    }
-
-    let options = {
-      scales: {
-        yAxes: [{
-          ticks: {
-            beginAtZero: true
-          }
-        }]
-      }
-    }
-
-    myChart = new Chart(ctx, {
-      type: 'bar',
-      data: data,
-      options: options
-    })
     clearTimeout(initialGraph)
     const imgBase64 = setTimeout(function () {
       const graphUrl = ctx.toDataURL()
       dataService.updateImage(id, graphUrl)
-        .then(console.log)
       clearTimeout(imgBase64)
     }, 500)
   }, 800)
 }
 
-const truncateString = (initialString) => {
-  if (initialString.length > 12) {
-    const shortString = initialString.substring(0, 12)
-    return shortString + '...'
-  }
-  return initialString
-}
-
 module.exports = resultsController
 
-},{"./colors/backgroundColors.json":112,"./colors/borderColors.json":113,"chart.js":13,"file-saver":79,"socket.io-client":91}],115:[function(require,module,exports){
+},{"chart.js":13,"file-saver":79,"socket.io-client":91}],113:[function(require,module,exports){
 const path = require('path')
 
 const htmlResults = "<!-- logged -->\n<div ng-if=\"loggedUser\" class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a ng-href=\"/\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <a href=\"#\" data-activates=\"mobile-demo\" class=\"button-collapse\"><i class=\"material-icons\">menu</i></a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a href=\"#!/username/{{idUser}}\">Account</a></li>\n                    <li><a ng-click=\"logout()\" class=\"logout-click\">Logout</a></li>\n                </ul>\n                <ul class=\"side-nav\" id=\"mobile-demo\">\n                    <li><a href=\"#!/username/{{idUser}}\">Account</a></li>\n                    <li><a ng-click=\"logout()\" class=\"logout-click\">Logout</a></li>\n                </ul>\n            </div>\n        </div>\n    </nav>\n</div>\n<!-- not logged -->\n<div ng-if=\"!loggedUser\" class=\"navbar-fixed\">\n    <nav id=\"nav_f\" class=\"default_color\" role=\"navigation\">\n        <div class=\"container\">\n            <div class=\"nav-wrapper\">\n                <a ng-href=\"/\" id=\"logo-container\" class=\"brand-logo\">Suffragium</a>\n                <a data-activates=\"mobile-demo\" class=\"button-collapse\"><i class=\"material-icons\">menu</i></a>\n                <ul class=\"right hide-on-med-and-down\">\n                    <li><a ng-href=\"#!/register\">Register</a></li>\n                    <li><a ng-href=\"#!/login\">Login</a></li>\n                </ul>\n                <ul class=\"side-nav\" id=\"mobile-demo\">\n                    <li><a href=\"#!/register\">Register</a></li>\n                    <li><a href=\"#!/login\">Login</a></li>\n                </ul>\n            </div>\n        </div>\n    </nav>\n</div>\n<div class=\"container-results\">\n    <div class=\"row\">\n        <div class=\"row col s11 l4 offset-l1 container-question\">\n            <p class=\"title-results-style title-size\">{{question}}</p>\n            <!-- begin checkbox option -->\n            <div ng-if=\"allowMoreThanOne\" class=\"container space\" ng-repeat=\"option in options\" id=\"{{option._id}}\">\n                <input type=\"checkbox\" id=\"option{{$index}}\" ng-model=\"option.selected\" ng-true-value=\"'{{option._id}}'\" ng-false-value=\"false\" >\n                <label for=\"option{{$index}}\">{{option.option}}</label>\n            </div>\n            <!-- end checkbox option -->\n             <!-- begin radio option -->\n            <div ng-if=\"!allowMoreThanOne\" class=\"container space\" ng-repeat=\"option in options\" id=\"{{option._id}}\">\n                <input class=\"with-gap\" type=\"radio\" id=\"option{{$index}}\" name=\"radio\" ng-model=\"changedVal\" value=\"{{$index}}\" ng-checked=\"false\" ng-click=\"getVal(option._id)\">\n                <label for=\"option{{$index}}\">{{option.option}}</label>\n            </div>\n            <!-- end radio option -->\n            <button ng-if=\"status\" class=\"btn voted\" type=\"submit\" name=\"action\" ng-click=\"vote(options)\">Vote\n                <i class=\"material-icons right\">send</i>\n            </button>\n            <div class=\"title-results-style\">\n                <p class=\"info-results\">Total Votes: {{totalVotes}}</p>\n                <p>Status: {{status ? 'Open' : 'Closed'}}</p>\n            </div>\n        </div>\n        <div class=\"col s11 l6 row container-graph\">\n            <canvas class=\"canvas-graph-style\" height=\"120\" width=\"230\" id=\"myChart\"></canvas>\n            <div class=\"input-field col s6\">\n                <select ng-change=\"changeChart(chartType)\" ng-model=\"chartType\">\n                  <option value=\"\" disabled>Choose Chart</option>\n                  <option value=\"bar\">Bar Chart</option>\n                  <option value=\"horizontalBar\">Horitzontal Bar Chart</option>\n                  <option value=\"line\">Line Chart</option>\n                  <option value=\"doughnut\">Doughnut Chart</option>\n                  <option value=\"pie\">Pie Chart</option>\n                </select>\n            </div>\n            <div class=\"col offset-s3 s3 save-button\">\n                <button class=\"btn voted\" ng-click=\"saveChart()\" name=\"action\" onclick=\"Materialize.toast('Saved!', 1000)\">Save\n                    <i class=\"material-icons right\">file_download</i>\n                </button>\n            </div>\n        </div>\n    </div>\n</div>"
@@ -60214,7 +59979,7 @@ function resultsConfig ($routeProvider) {
 
 module.exports = resultsConfig
 
-},{"path":89}],116:[function(require,module,exports){
+},{"path":89}],114:[function(require,module,exports){
 const run = ($rootScope, $location, StorageService, AuthService) => {
   if (AuthService.isLoggedIn()) {
     const token = StorageService.getToken()
@@ -60234,7 +59999,7 @@ const run = ($rootScope, $location, StorageService, AuthService) => {
 
 module.exports = run
 
-},{}],117:[function(require,module,exports){
+},{}],115:[function(require,module,exports){
 const AuthInterceptor = (StorageService) => {
   return {
     request: function (config) {
@@ -60248,7 +60013,7 @@ const AuthInterceptor = (StorageService) => {
 }
 module.exports = AuthInterceptor
 
-},{}],118:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
 'use strict'
 
 const AuthService = ($http, $rootScope, StorageService, jwtHelper) => {
@@ -60295,7 +60060,80 @@ const AuthService = ($http, $rootScope, StorageService, jwtHelper) => {
 
 module.exports = AuthService
 
-},{}],119:[function(require,module,exports){
+},{}],117:[function(require,module,exports){
+const Chart = require('chart.js')
+const backgroundColor = require('./colors/backgroundColors.json')
+const borderColor = require('./colors/borderColors.json')
+
+const ChartService = () => {
+  const truncateString = (initialString) => {
+    if (initialString.length > 12) {
+      const shortString = initialString.substring(0, 12)
+      return shortString + '...'
+    }
+    return initialString
+  }
+
+  const createBarChart = (chartType, chartOptions, chartVotes, ctx) => {
+    Chart.defaults.global.legend.display = false
+    const data = {
+      labels: chartOptions.map((option) => {
+        return truncateString(option)
+      }),
+      datasets: [{
+        label: '',
+        data: chartVotes,
+        backgroundColor: backgroundColor,
+        borderColor: borderColor,
+        borderWidth: 1
+      }]
+    }
+
+    const options = {
+      scales: {
+        xAxes: [{
+          ticks: {
+            beginAtZero: true
+          }
+        }],
+        yAxes: [{
+          ticks: {
+            beginAtZero: true
+          }
+        }]
+      }
+    }
+
+    return new Chart(ctx, {
+      type: chartType,
+      data: data,
+      options: options
+    })
+  }
+
+  const createPieChart = (chartType, chartOptions, chartVotes, ctx) => {
+    Chart.defaults.global.legend.display = true
+    const pieData = {
+      datasets: [{
+        data: chartVotes,
+        backgroundColor: backgroundColor,
+        borderColor: borderColor
+      }],
+      labels: chartOptions
+    }
+
+    return new Chart(ctx, {
+      type: chartType,
+      data: pieData
+    })
+  }
+
+  return { createBarChart, createPieChart }
+}
+
+module.exports = ChartService
+
+},{"./colors/backgroundColors.json":119,"./colors/borderColors.json":120,"chart.js":13}],118:[function(require,module,exports){
 'use strict'
 const StorageService = ($window) => {
   const saveToken = (token) => {
@@ -60315,7 +60153,105 @@ const StorageService = ($window) => {
 
 module.exports = StorageService
 
+},{}],119:[function(require,module,exports){
+module.exports=["rgba(54, 162, 235, 0.3)", 
+"rgba(255, 99, 132, 0.3)", 
+"rgba(255, 206, 86, 0.3)", 
+"rgba(75, 192, 192, 0.3)", 
+"rgba(153, 102, 255, 0.3)", 
+"rgba(255, 159, 64, 0.3)",
+"rgba(255,160,122,0.3)",
+"rgba(255,69,0,0.3)",
+"rgba(255,140,0,0.3)",
+"rgba(255,165,0,0.3)",
+"rgba(255,215,0,0.3)",
+"rgba(184,134,11,0.3)",
+"rgba(218,165,32,0.3)",
+"rgba(238,232,170,0.3)",
+"rgba(189,183,107,0.3)",
+"rgba(240,230,140,0.3)",
+"rgba(128,128,0,0.3)",
+"rgba(255,255,0,0.3)",
+"rgba(154,205,50,0.3)",
+"rgba(85,107,47,0.3)",
+"rgba(107,142,35,0.3)",
+"rgba(124,252,0,0.3)",
+"rgba(127,255,0,0.3)",
+"rgba(173,255,47,0.3)",
+"rgba(0,100,0,0.3)",
+"rgba(0,128,0,0.3)",
+"rgba(50,205,50,0.3)",
+"rgba(144,238,144,0.3)",
+"rgba(152,251,152,0.3)",
+"rgba(143,188,143,0.3)",
+"rgba(0,250,154,0.3)",
+"rgba(46,139,87,0.3)",
+"rgba(102,205,170,0.3)",
+"rgba(60,179,113,0.3)",
+"rgba(32,178,170,0.3)",
+"rgba(47,79,79,0.3)",
+"rgba(0,128,128,0.3)",
+"rgba(0,139,139,0.3)",
+"rgba(0,255,255,0.3)",
+"rgba(0,255,255,0.3)",
+"rgba(224,255,255,0.3)",
+"rgba(0,206,209,0.3)",
+"rgba(64,224,208,0.3)",
+"rgba(72,209,204,0.3)",
+"rgba(175,238,238,0.3)",
+"rgba(127,255,212,0.3)",
+"rgba(176,224,230,0.3)",
+"rgba(95,158,160,0.3)"]
 },{}],120:[function(require,module,exports){
+module.exports=["rgba(54, 162, 235, 1)", 
+"rgba(255, 99, 132, 1)", 
+"rgba(255, 206, 86, 1)", 
+"rgba(75, 192, 192, 1)", 
+"rgba(153, 102, 255, 1)", 
+"rgba(255, 159, 64, 1)",
+"rgba(255,160,122,1)",
+"rgba(255,69,0,1)",
+"rgba(255,140,0,1)",
+"rgba(255,165,0,1)",
+"rgba(255,215,0,1)",
+"rgba(184,134,11,1)",
+"rgba(218,165,32,1)",
+"rgba(238,232,170,1)",
+"rgba(189,183,107,1)",
+"rgba(240,230,140,1)",
+"rgba(128,128,0,1)",
+"rgba(255,255,0,1)",
+"rgba(154,205,50,1)",
+"rgba(85,107,47,1)",
+"rgba(107,142,35,1)",
+"rgba(124,252,0,1)",
+"rgba(127,255,0,1)",
+"rgba(173,255,47,1)",
+"rgba(0,100,0,1)",
+"rgba(0,128,0,1)",
+"rgba(50,205,50,1)",
+"rgba(144,238,144,1)",
+"rgba(152,251,152,1)",
+"rgba(143,188,143,1)",
+"rgba(0,250,154,1)",
+"rgba(46,139,87,1)",
+"rgba(102,205,170,1)",
+"rgba(60,179,113,1)",
+"rgba(32,178,170,1)",
+"rgba(47,79,79,1)",
+"rgba(0,128,128,1)",
+"rgba(0,139,139,1)",
+"rgba(0,255,255,1)",
+"rgba(0,255,255,1)",
+"rgba(224,255,255,1)",
+"rgba(0,206,209,1)",
+"rgba(64,224,208,1)",
+"rgba(72,209,204,1)",
+"rgba(175,238,238,1)",
+"rgba(127,255,212,1)",
+"rgba(176,224,230,1)",
+"rgba(95,158,160,1)"]
+},{}],121:[function(require,module,exports){
 'use strict'
 const getData = ($http) => {
   const getInfoPoll = (id) => {
