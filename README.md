@@ -5,10 +5,11 @@
 [![npm](https://github.com/MarioTerron/logo-images/blob/master/logos/npm.png)](https://www.npmjs.com/)
 [![Bower](https://github.com/FransLopez/logo-images/blob/master/logos/bower.png)](https://bower.io/)
 [![MongoDB](https://github.com/FransLopez/logo-images/blob/master/logos/mongodb.png)](https://www.mongodb.com/)
-[![Monogoose](https://github.com/MarioTerron/logo-images/blob/master/logos/mongoose.png)]
+![Monogoose](https://github.com/MarioTerron/logo-images/blob/master/logos/mongoose.png)
 [![HTML5,CSS3 and JS](https://github.com/FransLopez/logo-images/blob/master/logos/html5-css3-js.png)](http://www.w3.org/) 
 [![Standard - JavaScript Style Guide](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
-[![Browserify](https://github.com/MarioTerron/logo-images/blob/master/logos/browserify.png)]
+![Browserify](https://github.com/MarioTerron/logo-images/blob/master/logos/browserify.png)
+![Materializecss](https://pbs.twimg.com/profile_images/532662364613525504/GN559Lfb_reasonably_small.png)
 
 # [Suffragium](https://suffragium.herokuapp.com/#!/)
 
@@ -71,7 +72,7 @@ $npm dev:debug
 
 The server part has multiple **API endpoints** using several routes:
 
-- `/api` -> Serves the internal data of the users and players.
+- `/api` -> Serves the internal data of polls and users.
 - `/auth` -> Serves the authentication options, register and login.
 
 ---
