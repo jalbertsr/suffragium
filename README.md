@@ -8,6 +8,7 @@
 [![Monogoose](https://github.com/MarioTerron/logo-images/blob/master/logos/mongoose.png)]
 [![HTML5,CSS3 and JS](https://github.com/FransLopez/logo-images/blob/master/logos/html5-css3-js.png)](http://www.w3.org/) 
 [![Standard - JavaScript Style Guide](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
+[![Browserify](https://github.com/MarioTerron/logo-images/blob/master/logos/browserify.png)]
 
 # [Suffragium](https://suffragium.herokuapp.com/#!/)
 
