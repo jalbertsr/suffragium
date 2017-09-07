@@ -5,7 +5,6 @@ function homeController ($scope, dataService, AuthService, $location) {
     .then((response) => {
       $scope.polls = response.data
     })
-    .catch(console.log)
 
   $scope.logout = () => {
     AuthService.logout()
