@@ -5,10 +5,11 @@
 [![npm](https://github.com/MarioTerron/logo-images/blob/master/logos/npm.png)](https://www.npmjs.com/)
 [![Bower](https://github.com/FransLopez/logo-images/blob/master/logos/bower.png)](https://bower.io/)
 [![MongoDB](https://github.com/FransLopez/logo-images/blob/master/logos/mongodb.png)](https://www.mongodb.com/)
-[![Monogoose](https://github.com/MarioTerron/logo-images/blob/master/logos/mongoose.png)]
+![Monogoose](https://github.com/MarioTerron/logo-images/blob/master/logos/mongoose.png)
 [![HTML5,CSS3 and JS](https://github.com/FransLopez/logo-images/blob/master/logos/html5-css3-js.png)](http://www.w3.org/) 
 [![Standard - JavaScript Style Guide](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
-[![Browserify](https://github.com/MarioTerron/logo-images/blob/master/logos/browserify.png)]
+![Browserify](https://github.com/MarioTerron/logo-images/blob/master/logos/browserify.png)]
+![Materializecss](https://pbs.twimg.com/profile_images/532662364613525504/GN559Lfb_reasonably_small.png)
 
 # [Suffragium](https://suffragium.herokuapp.com/#!/)
 
