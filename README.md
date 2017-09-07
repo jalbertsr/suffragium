@@ -4,12 +4,11 @@
 [![ES6](https://github.com/MarioTerron/logo-images/blob/master/logos/es6.png)](http://www.ecma-international.org/ecma-262/6.0/) 
 [![npm](https://github.com/MarioTerron/logo-images/blob/master/logos/npm.png)](https://www.npmjs.com/)
 [![Bower](https://github.com/FransLopez/logo-images/blob/master/logos/bower.png)](https://bower.io/)
-[![Browserify](https://seeklogo.com/images/B/browserify-logo-A97CE3C5D0-seeklogo.com.png)](http://browserify.org/)
 [![MongoDB](https://github.com/FransLopez/logo-images/blob/master/logos/mongodb.png)](https://www.mongodb.com/)
 [![Monogoose](https://github.com/MarioTerron/logo-images/blob/master/logos/mongoose.png)]
 [![HTML5,CSS3 and JS](https://github.com/FransLopez/logo-images/blob/master/logos/html5-css3-js.png)](http://www.w3.org/) 
 [![Standard - JavaScript Style Guide](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
-[![Standard - JavaScript Style Guide](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
+[![Browserify](https://github.com/MarioTerron/logo-images/blob/master/logos/browserify.png)]
 
 # [Suffragium](https://suffragium.herokuapp.com/#!/)
 
@@ -88,7 +87,7 @@ The server part has multiple **API endpoints** using several routes:
     - bower: 1.8.0
     - materialize: 0.100.1
     - font-awesome: 4.7.0
-    - socket.io-client": 2.0.3
+    - socket.io-client: 2.0.3
 
 - **Back-end**
   - socket.io 2.0.3
