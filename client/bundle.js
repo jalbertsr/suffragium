@@ -60065,13 +60065,17 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
         .then((msg) => {
           if (msg.status === 200) Materialize.toast('Voted!', 2000)
         })
-        .catch(console.log)
+        .catch((msg) => {
+          if (msg.status === 401) Materialize.toast('Already Voted!', 2000)
+        })
     } else {
       dataService.vote(id, $scope.radioSelected)
         .then((msg) => {
           if (msg.status === 200) Materialize.toast('Voted!', 2000)
         })
-        .catch(Materialize.toast('Allready Voted!', 2000))
+        .catch((msg) => {
+          if (msg.status === 401) Materialize.toast('Already Voted!', 2000)
+        })
     }
     // emit vote
     socket.emit('newVote', {'voto': 'click'})
