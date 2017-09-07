@@ -14,31 +14,35 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
 
   /* -------- SOCKET UPDATE ALL ----------- */
   socket.on('updateInfo', (idPollUpdated) => {
-    console.log(idPollUpdated, 'update all clients')
-    dataService.getInfoPoll(idPollUpdated)
-    .then((response) => {
-      $scope.question = response.data.question
-      $scope.status = response.data.pollInfo.status
-      $scope.totalVotes = response.data.pollInfo.totalVotes
-      $scope.options = response.data.options
-      $scope.allowMoreThanOne = response.data.config.allowMoreThanOne
+    const url = $location.absUrl()
+    const token = url.split('/').pop()
+    if (idPollUpdated === token) {
+      console.log(`update all clients in poll ${idPollUpdated}`)
+      dataService.getInfoPoll(idPollUpdated)
+        .then((response) => {
+          $scope.question = response.data.question
+          $scope.status = response.data.pollInfo.status
+          $scope.totalVotes = response.data.pollInfo.totalVotes
+          $scope.options = response.data.options
+          $scope.allowMoreThanOne = response.data.config.allowMoreThanOne
 
-      dataOptions = response.data.options
+          dataOptions = response.data.options
 
-      $scope.chartOptions = dataOptions.map((obj) => {
-        return obj.option
-      })
+          $scope.chartOptions = dataOptions.map((obj) => {
+            return obj.option
+          })
 
-      $scope.chartVotes = dataOptions.map((obj) => {
-        return obj.votes
-      })
+          $scope.chartVotes = dataOptions.map((obj) => {
+            return obj.votes
+          })
 
-      const ctx = document.getElementById('myChart')
-      myChart.destroy()
+          const ctx = document.getElementById('myChart')
+          myChart.destroy()
 
-      myChart = ChartService.createBarChart($scope.currentChart, $scope.chartOptions, $scope.chartVotes, ctx)
-    })
-    .catch(console.log)
+          myChart = ChartService.createBarChart($scope.currentChart, $scope.chartOptions, $scope.chartVotes, ctx)
+        })
+      .catch(console.log)
+    }
   })
 
   /* ------------ START API CALLS ------------ */
