@@ -86,7 +86,7 @@ The server part has multiple **API endpoints** using several routes:
     - bower: 1.8.0
     - materialize: 0.100.1
     - font-awesome: 4.7.0
-    - socket.io-client": 2.0.3
+    - socket.io-client: 2.0.3
 
 - **Back-end**
   - socket.io 2.0.3
