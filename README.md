@@ -9,9 +9,9 @@
 [![HTML5,CSS3 and JS](https://github.com/FransLopez/logo-images/blob/master/logos/html5-css3-js.png)](http://www.w3.org/) 
 [![Standard - JavaScript Style Guide](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
 ![Browserify](https://github.com/MarioTerron/logo-images/blob/master/logos/browserify.png)
-![Materializecss](https://pbs.twimg.com/profile_images/532662364613525504/GN559Lfb_reasonably_small.png)
 [![Socket.io](https://socket.io/assets/img/logo.svg)](https://socket.io/)
 [![Skylab](https://github.com/Iggy-Codes/logo-images/blob/master/logos/skylab-56.png)](http://www.skylabcoders.com/)
+![Materializecss](https://pbs.twimg.com/profile_images/532662364613525504/GN559Lfb_reasonably_small.png)
 
 # [Suffragium](https://suffragium.herokuapp.com/#!/)
 
