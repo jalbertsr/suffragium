@@ -42,13 +42,13 @@
             <p class="title-results-style title-size">{{question}}</p>
             <!-- begin checkbox option -->
             <div ng-if="allowMoreThanOne" class="container space" ng-repeat="option in options" id="{{option._id}}">
-                <input type="checkbox" id="option{{$index}}" ng-model="option.selected" ng-true-value="'{{option._id}}'" ng-false-value="false" >
+                <input type="checkbox" id="option{{$index}}" ng-model="option.selected" ng-true-value="'{{option._id}}'" ng-false-value="false" ng-disabled="!status">
                 <label for="option{{$index}}">{{option.option}}</label>
             </div>
             <!-- end checkbox option -->
              <!-- begin radio option -->
             <div ng-if="!allowMoreThanOne" class="container space" ng-repeat="option in options" id="{{option._id}}">
-                <input class="with-gap" type="radio" id="option{{$index}}" name="radio" ng-model="changedVal" value="{{$index}}" ng-checked="false" ng-click="getVal(option._id)">
+                <input class="with-gap" type="radio" id="option{{$index}}" name="radio" ng-model="changedVal" value="{{$index}}" ng-checked="false" ng-click="getVal(option._id)" ng-disabled="!status">
                 <label for="option{{$index}}">{{option.option}}</label>
             </div>
             <!-- end radio option -->
