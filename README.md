@@ -16,6 +16,11 @@
 # [Suffragium](https://suffragium.herokuapp.com/#!/)
 
 ---
+## Description
+
+Suffragium is a real time voting app where you can create your poll and get results instantly visualizing data in a way you've never done before! Suffragium is the best way to vote any quick decision and get the results at your hands. 
+
+---
 
 ## Installation
 
