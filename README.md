@@ -15,6 +15,16 @@
 
 # [Suffragium](https://suffragium.herokuapp.com/#!/)
 
+## Screenshoots
+
+![Screenshot](https://i.imgur.com/445uasl.png)
+
+### Realtime voting
+![realtime](https://i.imgur.com/031SZXT.gif)
+
+### Data Visualitzation
+![dataviz](https://i.imgur.com/16th1D5.gif)
+
 ---
 ## Description
 
