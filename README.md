@@ -12,6 +12,7 @@
 [![Standard - JavaScript Style Guide](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
 ![Browserify](https://github.com/MarioTerron/logo-images/blob/master/logos/browserify.png)
 ![Materializecss](https://pbs.twimg.com/profile_images/532662364613525504/GN559Lfb_reasonably_small.png)
+![ButlerImage](http://jenkins-ci.org/sites/default/files/jenkins_logo.png)
 
 # [Suffragium](https://suffragium.herokuapp.com/#!/)
 
