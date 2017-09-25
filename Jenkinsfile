@@ -1,4 +1,3 @@
-env.git_id="9720aeb1-0359-48da-b79d-1b068cd3af4c"
 env.git_repo_name="https://github.com/jalbertsr/suffragium"
 
 node("master")
