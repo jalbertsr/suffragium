@@ -2,7 +2,6 @@ const User = require('../../../models/user.js')
 
 const handlePostRegister = (req, res) => {
   const { email, password } = req.body
-  console.log(req.body)
 
   const account = new User({ email })
 
