@@ -3,7 +3,7 @@ const User = require('../../../models/user.js')
 
 const handlePostInfoPoll = (req, res) => {
   const {question, userID} = req.body
-  console.log(req.body)
+
   let duplicationChecking = 'none'
   let allowMoreThanOne = false
 
