@@ -2,7 +2,7 @@ const Poll = require('../../../models/poll.js')
 const User = require('../../../models/user.js')
 
 const handlePostInfoPoll = (req, res) => {
-  const {question, userID} = req.body
+  const { question, userID } = req.body
 
   let duplicationChecking = 'none'
   let allowMoreThanOne = false
