@@ -57,13 +57,9 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
 
       dataOptions = response.data.options
 
-      $scope.chartOptions = dataOptions.map((obj) => {
-        return obj.option
-      })
+      $scope.chartOptions = dataOptions.map(obj => obj.option)
 
-      $scope.chartVotes = dataOptions.map((obj) => {
-        return obj.votes
-      })
+      $scope.chartVotes = dataOptions.map(obj => obj.votes)
     })
 
   /* ------------ CHECK USER LOGGED ------- */
@@ -73,7 +69,7 @@ function resultsController ($scope, $rootScope, $routeParams, dataService, AuthS
   /* ------------ ON CLICK ACTIONS -------- */
 
   $scope.saveChart = () => {
-    document.getElementById('myChart').toBlob((blob) => {
+    document.getElementById('myChart').toBlob(blob => {
       saveCount++
       FileSaver.saveAs(blob, `${$scope.currentChart}Chart_${saveCount}.png`)
     })
