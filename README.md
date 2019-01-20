@@ -35,7 +35,8 @@ Suffragium is a real time voting app where you can create your poll and get resu
 
 ## Installation
 
-You need to have installed [NodeJS](https://nodejs.org/) with [npm](https://www.npmjs.com/), [bower](https://bower.io/) and [MongoDB](https://www.mongodb.com/)
+You need to have installed [NodeJS](https://nodejs.org/) with [npm](https://www.npmjs.com/), [bower](https://bower.io/) and [MongoDB](https://www.mongodb.com/), then run commands: `npm install` and `bower install`
+
 
 ---
 ### Configuration `env` file
@@ -48,7 +49,7 @@ You need to create an **.env** file in the project root with the following envir
   PORT=3000
   ```
 
-- Mongodb path and database to use:
+- Mongodb path and database to use, this example uses a local database, but of course you can use any remote mongoDB, I recommend using [mlab](https://mlab.com/) if you're new to web development. 
 
   ```
   urlDb=mongodb://localhost:27017/NAME_DB
